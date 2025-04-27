@@ -1,0 +1,52 @@
+services:
+  # default configuration for services in *this* file
+  _defaults:
+    autowire: true      # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    bind:
+      $asyncEnabled: '%smtp_mailer.async_enabled%'
+      $asyncTransport: '%smtp_mailer.async_transport%'
+      $defaultStrategy: '%smtp_mailer.default_strategy%'
+      $processInterval: '%smtp_mailer.process_scheduled_interval%'
+
+  # 注册控制器
+  Tourze\SMTPMailerBundle\Controller\:
+    resource: '../../Controller/'
+    tags: ['controller.service_arguments']
+
+  # 注册命令
+  Tourze\SMTPMailerBundle\Command\:
+    resource: '../../Command/'
+    tags: ['console.command']
+
+  # 注册Repository
+  Tourze\SMTPMailerBundle\Repository\:
+    resource: '../../Repository/'
+
+  # 注册Service
+  Tourze\SMTPMailerBundle\Service\:
+    resource: '../../Service/'
+
+  # 注册策略类
+  Tourze\SMTPMailerBundle\Service\SMTPSelector\:
+    resource: '../../Service/SMTPSelector/'
+    tags: ['smtp_mailer.selector_strategy']
+
+  # 注册消息处理器
+  Tourze\SMTPMailerBundle\MessageHandler\:
+    resource: '../../MessageHandler/'
+    tags: ['messenger.message_handler']
+
+  # 单独配置SMTPMailerService
+  Tourze\SMTPMailerBundle\Service\SMTPMailerService:
+    arguments:
+      $asyncEnabled: '%smtp_mailer.async_enabled%'
+      $defaultFromEmail: '%smtp_mailer.default_from_email|default("no-reply@example.com")%'
+
+  # Bundle参数处理
+  smtp_mailer.bundle.parameters:
+    class: Tourze\SMTPMailerBundle\Service\BundleParametersHandler
+    arguments:
+      $smtpConfigs: '%smtp_mailer.smtp_configs|default([])%'
+    tags:
+      - { name: 'kernel.event_listener', event: 'kernel.boot', method: 'onKernelBoot' }
