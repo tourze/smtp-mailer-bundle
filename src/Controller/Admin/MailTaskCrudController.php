@@ -2,6 +2,7 @@
 
 namespace Tourze\SMTPMailerBundle\Controller\Admin;
 
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -122,6 +123,7 @@ class MailTaskCrudController extends AbstractCrudController
     /**
      * 重新发送邮件
      */
+    #[AdminAction('{entityId}/resend', 'resend')]
     public function resendAction(AdminContext $context): RedirectResponse
     {
         /** @var MailTask $mailTask */
