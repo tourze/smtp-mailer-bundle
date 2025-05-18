@@ -328,7 +328,7 @@ class MailTask
     /**
      * 标记任务为失败
      */
-    public function markAsFailed(string $errorMessage = null): self
+    public function markAsFailed(?string $errorMessage = null): self
     {
         $this->status = self::STATUS_FAILED;
         $this->statusMessage = $errorMessage;

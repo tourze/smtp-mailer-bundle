@@ -2,6 +2,7 @@
 
 namespace Tourze\SMTPMailerBundle\MessageHandler;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
@@ -19,6 +20,7 @@ class SendMailMessageHandler
         private readonly MailTaskRepository $mailTaskRepository,
         private readonly MailSenderService $mailSenderService,
         private readonly LoggerInterface $logger,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -46,7 +48,7 @@ class SendMailMessageHandler
 
         // 标记为处理中
         $mailTask->markAsProcessing();
-        $this->mailTaskRepository->getEntityManager()->flush();
+        $this->entityManager->flush();
 
         try {
             $result = $this->mailSenderService->sendMailTask($mailTask);
@@ -65,6 +67,6 @@ class SendMailMessageHandler
             $mailTask->markAsFailed($e->getMessage());
         }
 
-        $this->mailTaskRepository->getEntityManager()->flush();
+        $this->entityManager->flush();
     }
 }
