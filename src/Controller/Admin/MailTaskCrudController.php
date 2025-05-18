@@ -15,7 +15,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\CodeEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\JsonField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -58,8 +57,8 @@ class MailTaskCrudController extends AbstractCrudController
         yield TextField::new('fromName', '发件人名称');
         yield EmailField::new('toEmail', '收件人邮箱');
         yield TextField::new('toName', '收件人名称');
-        yield JsonField::new('cc', '抄送')->hideOnIndex();
-        yield JsonField::new('bcc', '密送')->hideOnIndex();
+        yield TextareaField::new('cc', '抄送')->hideOnIndex();
+        yield TextareaField::new('bcc', '密送')->hideOnIndex();
         yield TextField::new('subject', '邮件主题');
 
         if ($pageName === Crud::PAGE_DETAIL || $pageName === Crud::PAGE_EDIT) {
@@ -71,7 +70,7 @@ class MailTaskCrudController extends AbstractCrudController
         }
 
         yield BooleanField::new('isHtml', 'HTML格式');
-        yield JsonField::new('attachments', '附件')->hideOnIndex();
+        yield TextareaField::new('attachments', '附件')->hideOnIndex();
         yield DateTimeField::new('scheduledAt', '计划发送时间')->hideOnIndex();
 
         yield ChoiceField::new('status', '状态')
