@@ -98,50 +98,32 @@ SMTP Mailer Bundle 是一个 Symfony Bundle，主要功能包括：
 - sent_at: datetime (实际发送时间)
 ```
 
-## 5. 配置结构
+## 5. 开发阶段
 
-```yaml
-# config/packages/smtp_mailer.yaml
-smtp_mailer:
-  default_strategy: 'round_robin'  # 默认SMTP选择策略
-  async_enabled: true              # 是否启用异步发送
-  async_transport: 'async'         # 异步消息传输名称
-  process_scheduled_interval: 60   # 处理定时任务的间隔（秒）
-  smtp_configs:                    # 预定义SMTP配置（可选）
-    main:
-      host: '%env(MAILER_HOST)%'
-      port: '%env(int:MAILER_PORT)%'
-      username: '%env(MAILER_USERNAME)%'
-      password: '%env(MAILER_PASSWORD)%'
-      encryption: '%env(MAILER_ENCRYPTION)%'
-```
-
-## 6. 开发阶段
-
-### 6.1 基础框架搭建
+### 5.1 基础框架搭建
 - 设置 Bundle 基础结构
 - 完善 DependencyInjection 配置
 - 创建实体类
 
-### 6.2 核心功能开发
+### 5.2 核心功能开发
 - 实现 SMTP 选择策略接口及各策略类
 - 开发邮件发送服务
 - 开发任务调度服务
 
-### 6.3 异步处理
+### 5.3 异步处理
 - 设置 Messenger 集成
 - 实现消息处理程序
 
-### 6.4 管理界面
+### 5.4 管理界面
 - 集成 EasyAdmin
 - 创建 CRUD 控制器
 
-### 6.5 测试与文档
+### 5.5 测试与文档
 - 单元测试
 - 功能测试
 - 更新 README.md
 
-## 7. 使用示例
+## 6. 使用示例
 
 ```php
 // 使用服务示例
@@ -157,7 +139,7 @@ $mailerService->send($to, $subject, $body, [
 $mailerService->sendWithConfig($configId, $to, $subject, $body, $options);
 ```
 
-## 8. 开发排期
+## 7. 开发排期
 
 1. 基础框架搭建 - 1天
 2. 核心功能开发 - 2天

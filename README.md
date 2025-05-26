@@ -17,34 +17,6 @@
 composer require tourze/smtp-mailer-bundle
 ```
 
-## 配置
-
-在 `config/packages/smtp_mailer.yaml` 中添加配置：
-
-```yaml
-smtp_mailer:
-  default_strategy: 'round_robin'  # 默认SMTP选择策略
-  async_enabled: true              # 是否启用异步发送
-  async_transport: 'async'         # 异步消息传输名称
-  process_scheduled_interval: 60   # 处理定时任务的间隔（秒）
-  smtp_configs:                    # 预定义SMTP配置（可选）
-    main:
-      host: '%env(MAILER_HOST)%'
-      port: '%env(int:MAILER_PORT)%'
-      username: '%env(MAILER_USERNAME)%'
-      password: '%env(MAILER_PASSWORD)%'
-      encryption: '%env(MAILER_ENCRYPTION)%'
-```
-
-如果使用 Symfony Flex，bundle 会自动注册。否则，需要手动在 `config/bundles.php` 中添加：
-
-```php
-return [
-    // ...
-    Tourze\SMTPMailerBundle\SMTPMailerBundle::class => ['all' => true],
-];
-```
-
 ## 使用
 
 ### 基本发送
