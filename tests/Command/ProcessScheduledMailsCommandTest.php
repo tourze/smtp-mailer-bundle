@@ -19,7 +19,7 @@ class ProcessScheduledMailsCommandTest extends TestCase
     protected function setUp(): void
     {
         $this->mailerService = $this->createMock(SMTPMailerService::class);
-        $this->command = new ProcessScheduledMailsCommand($this->mailerService, 60);
+        $this->command = new ProcessScheduledMailsCommand($this->mailerService);
         
         $application = new Application();
         $application->add($this->command);
@@ -99,7 +99,7 @@ class ProcessScheduledMailsCommandTest extends TestCase
         
         // 创建一个自定义版本的命令来避免无限循环
         $commandMock = $this->getMockBuilder(ProcessScheduledMailsCommand::class)
-            ->setConstructorArgs([$this->mailerService, 1])
+            ->setConstructorArgs([$this->mailerService])
             ->onlyMethods(['execute'])
             ->getMock();
             

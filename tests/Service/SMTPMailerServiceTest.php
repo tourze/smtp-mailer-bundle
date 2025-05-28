@@ -45,8 +45,6 @@ class SMTPMailerServiceTest extends TestCase
             $this->mailSenderService,
             $this->messageBus,
             $this->logger,
-            true, // asyncEnabled
-            'no-reply@example.com' // defaultFromEmail
         );
     }
     

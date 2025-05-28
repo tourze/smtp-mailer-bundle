@@ -23,9 +23,23 @@ class SMTPMailerService
         private readonly MailSenderService $mailSenderService,
         private readonly MessageBusInterface $messageBus,
         private readonly LoggerInterface $logger,
-        private readonly bool $asyncEnabled = true,
-        private readonly string $defaultFromEmail = 'no-reply@example.com',
     ) {
+    }
+
+    /**
+     * 检查是否启用异步发送
+     */
+    private function isAsyncEnabled(): bool
+    {
+        return filter_var($_ENV['SMTP_MAILER_ASYNC_ENABLED'] ?? 'true', FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * 获取默认发件人邮箱
+     */
+    private function getDefaultFromEmail(): string
+    {
+        return $_ENV['SMTP_MAILER_DEFAULT_FROM_EMAIL'] ?? 'no-reply@example.com';
     }
 
     /**
@@ -56,7 +70,7 @@ class SMTPMailerService
         $mailTask->setBody($body);
 
         // 设置发件人
-        $mailTask->setFromEmail($options['from'] ?? $this->defaultFromEmail);
+        $mailTask->setFromEmail($options['from'] ?? $this->getDefaultFromEmail());
 
         if (isset($options['fromName'])) {
             $mailTask->setFromName($options['fromName']);
@@ -110,7 +124,7 @@ class SMTPMailerService
         $shouldSendNow = $mailTask->getScheduledAt() === null;
 
         // 检查是否异步发送
-        $async = $options['async'] ?? $this->asyncEnabled;
+        $async = $options['async'] ?? $this->isAsyncEnabled();
 
         if ($shouldSendNow) {
             if ($async) {
@@ -152,7 +166,7 @@ class SMTPMailerService
         $mailTask->setSmtpConfig($smtpConfig);
 
         // 设置发件人
-        $mailTask->setFromEmail($options['from'] ?? $this->defaultFromEmail);
+        $mailTask->setFromEmail($options['from'] ?? $this->getDefaultFromEmail());
 
         if (isset($options['fromName'])) {
             $mailTask->setFromName($options['fromName']);
@@ -201,7 +215,7 @@ class SMTPMailerService
         $shouldSendNow = $mailTask->getScheduledAt() === null;
 
         // 检查是否异步发送
-        $async = $options['async'] ?? $this->asyncEnabled;
+        $async = $options['async'] ?? $this->isAsyncEnabled();
 
         if ($shouldSendNow) {
             if ($async) {
@@ -286,7 +300,7 @@ class SMTPMailerService
         $this->entityManager->flush();
 
         // 异步发送
-        if ($this->asyncEnabled) {
+        if ($this->isAsyncEnabled()) {
             $this->messageBus->dispatch(new SendMailMessage($mailTask->getId()));
             return true;
         } else {
@@ -305,7 +319,7 @@ class SMTPMailerService
 
         foreach ($scheduledTasks as $task) {
             if ($task->isReadyToSend()) {
-                if ($this->asyncEnabled) {
+                if ($this->isAsyncEnabled()) {
                     // 异步发送
                     $this->messageBus->dispatch(new SendMailMessage($task->getId()));
                 } else {

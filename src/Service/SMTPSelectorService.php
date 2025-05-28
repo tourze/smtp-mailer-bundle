@@ -23,16 +23,15 @@ class SMTPSelectorService
         private readonly SMTPConfigRepository $smtpConfigRepository,
         #[TaggedIterator('smtp_mailer.selector_strategy', indexAttribute: 'key')]
         iterable $strategies,
-        string $defaultStrategy = 'round_robin'
     ) {
-        $this->defaultStrategy = $defaultStrategy;
+        $this->defaultStrategy = $_ENV['SMTP_MAILER_DEFAULT_STRATEGY'] ?? 'round_robin';
 
         foreach ($strategies as $key => $strategy) {
             $this->strategies[$key] = $strategy;
         }
 
         // 添加默认策略的别名
-        if (!isset($this->strategies[$defaultStrategy]) && count($this->strategies) > 0) {
+        if (!isset($this->strategies[$this->defaultStrategy]) && count($this->strategies) > 0) {
             // 如果默认策略不存在，使用第一个可用的策略
             $this->defaultStrategy = array_key_first($this->strategies);
         }

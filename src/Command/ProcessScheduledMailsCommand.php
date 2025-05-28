@@ -21,16 +21,23 @@ class ProcessScheduledMailsCommand extends Command
 {
     public function __construct(
         private readonly SMTPMailerService $mailerService,
-        private readonly int $processInterval = 60,
     ) {
         parent::__construct();
+    }
+
+    /**
+     * 获取处理间隔
+     */
+    private function getProcessInterval(): int
+    {
+        return (int) ($_ENV['SMTP_MAILER_PROCESS_INTERVAL'] ?? 60);
     }
 
     protected function configure(): void
     {
         $this
             ->addOption('daemon', 'd', InputOption::VALUE_NONE, '以守护进程模式运行')
-            ->addOption('interval', 'i', InputOption::VALUE_REQUIRED, '轮询间隔（秒）', $this->processInterval);
+            ->addOption('interval', 'i', InputOption::VALUE_REQUIRED, '轮询间隔（秒）', $this->getProcessInterval());
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -40,7 +47,7 @@ class ProcessScheduledMailsCommand extends Command
         $interval = (int) $input->getOption('interval');
 
         if ($interval < 1) {
-            $interval = $this->processInterval;
+            $interval = $this->getProcessInterval();
         }
 
         if ($daemon) {
