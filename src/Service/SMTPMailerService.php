@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
+use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 use Tourze\SMTPMailerBundle\Message\SendMailMessage;
 use Tourze\SMTPMailerBundle\Repository\MailTaskRepository;
 use Tourze\SMTPMailerBundle\Repository\SMTPConfigRepository;
@@ -108,7 +109,7 @@ class SMTPMailerService
             } else {
                 $scheduledAt = $options['scheduledAt'];
             }
-            $mailTask->setScheduledAt($scheduledAt);
+            $mailTask->setScheduledTime($scheduledAt);
         }
 
         // 设置选择策略
@@ -121,7 +122,7 @@ class SMTPMailerService
         $this->entityManager->flush();
 
         // 如果没有计划发送时间，立即发送
-        $shouldSendNow = $mailTask->getScheduledAt() === null;
+        $shouldSendNow = $mailTask->getScheduledTime() === null;
 
         // 检查是否异步发送
         $async = $options['async'] ?? $this->isAsyncEnabled();
@@ -204,7 +205,7 @@ class SMTPMailerService
             } else {
                 $scheduledAt = $options['scheduledAt'];
             }
-            $mailTask->setScheduledAt($scheduledAt);
+            $mailTask->setScheduledTime($scheduledAt);
         }
 
         // 保存任务
@@ -212,7 +213,7 @@ class SMTPMailerService
         $this->entityManager->flush();
 
         // 如果没有计划发送时间，立即发送
-        $shouldSendNow = $mailTask->getScheduledAt() === null;
+        $shouldSendNow = $mailTask->getScheduledTime() === null;
 
         // 检查是否异步发送
         $async = $options['async'] ?? $this->isAsyncEnabled();
@@ -296,7 +297,7 @@ class SMTPMailerService
         }
 
         // 重置状态
-        $mailTask->setStatus(MailTask::STATUS_PENDING);
+        $mailTask->setStatus(MailTaskStatus::PENDING);
         $this->entityManager->flush();
 
         // 异步发送

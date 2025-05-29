@@ -35,7 +35,7 @@ class ProdFixtures extends Fixture implements FixtureGroupInterface
         $defaultConfig->setAuthMode('login');
         $defaultConfig->setWeight(10);
         $defaultConfig->setPriority(100);
-        $defaultConfig->setEnabled(false); // 默认禁用，需要管理员配置后启用
+        $defaultConfig->setValid(false); // 默认禁用，需要管理员配置后启用
 
         $manager->persist($defaultConfig);
 
@@ -51,7 +51,7 @@ class ProdFixtures extends Fixture implements FixtureGroupInterface
         $backupConfig->setAuthMode('login');
         $backupConfig->setWeight(5);
         $backupConfig->setPriority(50);
-        $backupConfig->setEnabled(false); // 默认禁用
+        $backupConfig->setValid(false); // 默认禁用
 
         $manager->persist($backupConfig);
 

@@ -5,6 +5,7 @@ namespace Tourze\SMTPMailerBundle\Repository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
+use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 
 /**
  * 邮件任务仓库
@@ -28,8 +29,8 @@ class MailTaskRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('t')
             ->where('t.status = :status')
-            ->setParameter('status', MailTask::STATUS_PENDING)
-            ->orderBy('t.createdAt', 'ASC')
+            ->setParameter('status', MailTaskStatus::PENDING)
+            ->orderBy('t.createTime', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -43,11 +44,11 @@ class MailTaskRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('t')
             ->where('t.status = :status')
-            ->andWhere('t.scheduledAt IS NOT NULL')
-            ->andWhere('t.scheduledAt <= :now')
-            ->setParameter('status', MailTask::STATUS_PENDING)
+            ->andWhere('t.scheduledTime IS NOT NULL')
+            ->andWhere('t.scheduledTime <= :now')
+            ->setParameter('status', MailTaskStatus::PENDING)
             ->setParameter('now', $now)
-            ->orderBy('t.scheduledAt', 'ASC')
+            ->orderBy('t.scheduledTime', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -71,11 +72,11 @@ class MailTaskRepository extends ServiceEntityRepository
     public function findByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
     {
         return $this->createQueryBuilder('t')
-            ->where('t.createdAt >= :startDate')
-            ->andWhere('t.createdAt <= :endDate')
+            ->where('t.createTime >= :startDate')
+            ->andWhere('t.createTime <= :endDate')
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate)
-            ->orderBy('t.createdAt', 'DESC')
+            ->orderBy('t.createTime', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -88,7 +89,7 @@ class MailTaskRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('t')
             ->where('t.smtpConfig = :smtpConfigId')
             ->setParameter('smtpConfigId', $smtpConfigId)
-            ->orderBy('t.createdAt', 'DESC')
+            ->orderBy('t.createTime', 'DESC')
             ->getQuery()
             ->getResult();
     }

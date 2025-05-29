@@ -11,7 +11,7 @@ class SendMailMessageTest extends TestCase
     {
         $taskId = 123;
         $message = new SendMailMessage($taskId);
-        
+
         $this->assertSame($taskId, $message->getMailTaskId());
     }
-} 
+}

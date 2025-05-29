@@ -33,7 +33,7 @@ class SMTPConfigFixtures extends Fixture
         $gmailConfig->setAuthMode('login');
         $gmailConfig->setWeight(10);
         $gmailConfig->setPriority(100);
-        $gmailConfig->setEnabled(true);
+        $gmailConfig->setValid(true);
 
         $manager->persist($gmailConfig);
         $this->addReference(self::GMAIL_SMTP_REFERENCE, $gmailConfig);
@@ -50,7 +50,7 @@ class SMTPConfigFixtures extends Fixture
         $outlookConfig->setAuthMode('login');
         $outlookConfig->setWeight(8);
         $outlookConfig->setPriority(90);
-        $outlookConfig->setEnabled(true);
+        $outlookConfig->setValid(true);
 
         $manager->persist($outlookConfig);
         $this->addReference(self::OUTLOOK_SMTP_REFERENCE, $outlookConfig);
@@ -67,7 +67,7 @@ class SMTPConfigFixtures extends Fixture
         $qqConfig->setAuthMode('login');
         $qqConfig->setWeight(6);
         $qqConfig->setPriority(80);
-        $qqConfig->setEnabled(true);
+        $qqConfig->setValid(true);
 
         $manager->persist($qqConfig);
         $this->addReference(self::QQ_SMTP_REFERENCE, $qqConfig);
@@ -84,7 +84,7 @@ class SMTPConfigFixtures extends Fixture
         $aliyunConfig->setAuthMode('login');
         $aliyunConfig->setWeight(15);
         $aliyunConfig->setPriority(110);
-        $aliyunConfig->setEnabled(true);
+        $aliyunConfig->setValid(true);
 
         $manager->persist($aliyunConfig);
         $this->addReference(self::ALIYUN_SMTP_REFERENCE, $aliyunConfig);
@@ -101,7 +101,7 @@ class SMTPConfigFixtures extends Fixture
         $tencentConfig->setAuthMode('login');
         $tencentConfig->setWeight(12);
         $tencentConfig->setPriority(105);
-        $tencentConfig->setEnabled(true);
+        $tencentConfig->setValid(true);
 
         $manager->persist($tencentConfig);
         $this->addReference(self::TENCENT_SMTP_REFERENCE, $tencentConfig);
@@ -117,7 +117,7 @@ class SMTPConfigFixtures extends Fixture
         $disabledConfig->setTimeout(30);
         $disabledConfig->setWeight(1);
         $disabledConfig->setPriority(10);
-        $disabledConfig->setEnabled(false); // 禁用状态
+        $disabledConfig->setValid(false); // 禁用状态
 
         $manager->persist($disabledConfig);
 

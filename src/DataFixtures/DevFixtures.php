@@ -8,6 +8,7 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
+use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 
 /**
  * 开发环境数据填充
@@ -38,7 +39,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
      */
     private function createBulkTestTasks(ObjectManager $manager, SMTPConfig $gmailConfig, SMTPConfig $outlookConfig): void
     {
-        $statuses = [MailTask::STATUS_PENDING, MailTask::STATUS_SENT, MailTask::STATUS_FAILED, MailTask::STATUS_PROCESSING];
+        $statuses = [MailTaskStatus::PENDING, MailTaskStatus::SENT, MailTaskStatus::FAILED, MailTaskStatus::PROCESSING];
         $strategies = ['round_robin', 'random', 'weighted', 'priority'];
         $configs = [$gmailConfig, $outlookConfig, null]; // null表示使用策略选择
 
@@ -66,7 +67,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
 
             // 部分任务设置为计划发送
             if ($i % 10 === 0) {
-                $task->setScheduledAt(new \DateTimeImmutable('+' . rand(1, 24) . ' hours'));
+                $task->setScheduledTime(new \DateTimeImmutable('+' . rand(1, 24) . ' hours'));
             }
 
             // 部分任务添加抄送
@@ -95,7 +96,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
         $longSubjectTask->setSubject(str_repeat('这是一个非常长的邮件主题，用于测试系统对超长主题的处理能力。', 10));
         $longSubjectTask->setBody('测试超长主题的邮件内容');
         $longSubjectTask->setSmtpConfig($gmailConfig);
-        $longSubjectTask->setStatus(MailTask::STATUS_PENDING);
+        $longSubjectTask->setStatus(MailTaskStatus::PENDING);
 
         $manager->persist($longSubjectTask);
 
@@ -107,7 +108,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
         $longBodyTask->setBody(str_repeat('这是一段很长的邮件内容，用于测试系统对大容量邮件的处理能力。', 1000));
         $longBodyTask->setIsHtml(false);
         $longBodyTask->setSmtpConfig($gmailConfig);
-        $longBodyTask->setStatus(MailTask::STATUS_PENDING);
+        $longBodyTask->setStatus(MailTaskStatus::PENDING);
 
         $manager->persist($longBodyTask);
 
@@ -131,7 +132,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
         ');
         $specialCharsTask->setIsHtml(false);
         $specialCharsTask->setSmtpConfig($gmailConfig);
-        $specialCharsTask->setStatus(MailTask::STATUS_PENDING);
+        $specialCharsTask->setStatus(MailTaskStatus::PENDING);
 
         $manager->persist($specialCharsTask);
 
@@ -157,7 +158,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
         $massEmailTask->setBcc($bccList);
         
         $massEmailTask->setSmtpConfig($gmailConfig);
-        $massEmailTask->setStatus(MailTask::STATUS_PENDING);
+        $massEmailTask->setStatus(MailTaskStatus::PENDING);
 
         $manager->persist($massEmailTask);
 
@@ -171,7 +172,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
         $complexHtmlTask->setBody($this->getComplexHtmlTemplate());
         $complexHtmlTask->setIsHtml(true);
         $complexHtmlTask->setSmtpConfig($gmailConfig);
-        $complexHtmlTask->setStatus(MailTask::STATUS_PENDING);
+        $complexHtmlTask->setStatus(MailTaskStatus::PENDING);
 
         $manager->persist($complexHtmlTask);
     }
@@ -190,7 +191,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
         $mailhogConfig->setTimeout(10);
         $mailhogConfig->setWeight(1);
         $mailhogConfig->setPriority(1);
-        $mailhogConfig->setEnabled(true);
+        $mailhogConfig->setValid(true);
 
         $manager->persist($mailhogConfig);
 
@@ -206,7 +207,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
         $mailtrapConfig->setAuthMode('login');
         $mailtrapConfig->setWeight(5);
         $mailtrapConfig->setPriority(50);
-        $mailtrapConfig->setEnabled(true);
+        $mailtrapConfig->setValid(true);
 
         $manager->persist($mailtrapConfig);
 
@@ -222,7 +223,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
         $slowSmtpConfig->setAuthMode('login');
         $slowSmtpConfig->setWeight(1);
         $slowSmtpConfig->setPriority(10);
-        $slowSmtpConfig->setEnabled(false); // 默认禁用
+        $slowSmtpConfig->setValid(false); // 默认禁用
 
         $manager->persist($slowSmtpConfig);
     }

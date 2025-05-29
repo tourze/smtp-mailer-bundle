@@ -9,6 +9,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
+use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 use Tourze\SMTPMailerBundle\Message\SendMailMessage;
 use Tourze\SMTPMailerBundle\Repository\MailTaskRepository;
 use Tourze\SMTPMailerBundle\Repository\SMTPConfigRepository;
@@ -181,11 +182,11 @@ class SMTPMailerServiceTest extends TestCase
                 $capturedMailTask = $mailTask;
                 
                 // 验证 scheduledAt 值被正确设置为 DateTimeImmutable
-                $mailTaskScheduledAt = $mailTask->getScheduledAt();
+                $mailTaskScheduledTime = $mailTask->getScheduledTime();
                 
                 return $mailTask instanceof MailTask 
-                    && $mailTaskScheduledAt instanceof \DateTimeImmutable
-                    && $mailTaskScheduledAt->getTimestamp() === $scheduledAt->getTimestamp();
+                    && $mailTaskScheduledTime instanceof \DateTimeImmutable
+                    && $mailTaskScheduledTime->getTimestamp() === $scheduledAt->getTimestamp();
             }));
         
         // 模拟 ID 设置
@@ -322,7 +323,7 @@ class SMTPMailerServiceTest extends TestCase
         
         // 断言结果
         $this->assertTrue($result);
-        $this->assertSame(MailTask::STATUS_SENT, $mailTask->getStatus());
+        $this->assertSame(MailTaskStatus::SENT, $mailTask->getStatus());
     }
     
     public function testSendMailTaskNow_WithStrategy_Success(): void
@@ -360,7 +361,7 @@ class SMTPMailerServiceTest extends TestCase
         
         // 断言结果
         $this->assertTrue($result);
-        $this->assertSame(MailTask::STATUS_SENT, $mailTask->getStatus());
+        $this->assertSame(MailTaskStatus::SENT, $mailTask->getStatus());
     }
     
     public function testSendMailTaskNow_NoConfigAvailable_UseDefault(): void
@@ -394,7 +395,7 @@ class SMTPMailerServiceTest extends TestCase
         
         // 断言结果
         $this->assertTrue($result);
-        $this->assertSame(MailTask::STATUS_SENT, $mailTask->getStatus());
+        $this->assertSame(MailTaskStatus::SENT, $mailTask->getStatus());
     }
     
     public function testSendMailTaskNow_SendingFailed(): void
@@ -421,7 +422,7 @@ class SMTPMailerServiceTest extends TestCase
         
         // 断言结果
         $this->assertFalse($result);
-        $this->assertSame(MailTask::STATUS_FAILED, $mailTask->getStatus());
+        $this->assertSame(MailTaskStatus::FAILED, $mailTask->getStatus());
         $this->assertSame('邮件发送失败', $mailTask->getStatusMessage());
     }
     
@@ -457,7 +458,7 @@ class SMTPMailerServiceTest extends TestCase
         
         // 断言结果
         $this->assertFalse($result);
-        $this->assertSame(MailTask::STATUS_FAILED, $mailTask->getStatus());
+        $this->assertSame(MailTaskStatus::FAILED, $mailTask->getStatus());
         $this->assertSame('发送时发生异常', $mailTask->getStatusMessage());
     }
 } 

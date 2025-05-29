@@ -2,94 +2,90 @@
 
 namespace Tourze\SMTPMailerBundle\Entity;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
+use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 use Tourze\SMTPMailerBundle\Repository\MailTaskRepository;
 
 #[ORM\Entity(repositoryClass: MailTaskRepository::class)]
-#[ORM\Table(name: 'mail_task')]
-#[ORM\HasLifecycleCallbacks]
-class MailTask
+#[ORM\Table(
+    name: 'mail_task',
+    options: ['comment' => '邮件任务表']
+)]
+class MailTask implements \Stringable
 {
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_PROCESSING = 'processing';
-    public const STATUS_SENT = 'sent';
-    public const STATUS_FAILED = 'failed';
+    use TimestampableAware;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '发件人邮箱'])]
     #[Assert\Email]
+    #[IndexColumn]
     private string $fromEmail;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '发件人姓名'])]
     private ?string $fromName = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '收件人邮箱'])]
     #[Assert\Email]
     #[Assert\NotBlank]
+    #[IndexColumn]
     private string $toEmail;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '收件人姓名'])]
     private ?string $toName = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '抄送邮箱列表'])]
     private ?array $cc = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '密送邮箱列表'])]
     private ?array $bcc = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '邮件主题'])]
     #[Assert\NotBlank]
     private string $subject;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: Types::TEXT, options: ['comment' => '邮件内容'])]
     #[Assert\NotBlank]
     private string $body;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否为HTML格式'])]
     private bool $isHtml = true;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '附件列表'])]
     private ?array $attachments = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $scheduledAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '计划发送时间'])]
+    #[IndexColumn]
+    private ?\DateTimeImmutable $scheduledTime = null;
 
-    #[ORM\Column(length: 20)]
-    private string $status = self::STATUS_PENDING;
+    #[ORM\Column(type: Types::STRING, length: 20, enumType: MailTaskStatus::class, options: ['comment' => '任务状态'])]
+    #[IndexColumn]
+    private MailTaskStatus $status = MailTaskStatus::PENDING;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '状态消息'])]
     private ?string $statusMessage = null;
 
     #[ORM\ManyToOne(targetEntity: SMTPConfig::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?SMTPConfig $smtpConfig = null;
 
-    #[ORM\Column(length: 50, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '选择器策略'])]
     private ?string $selectorStrategy = null;
 
-    #[ORM\Column]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '发送时间'])]
+    #[IndexColumn]
+    private ?\DateTimeImmutable $sentTime = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updatedAt = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $sentAt = null;
-
-    public function __construct()
+    public function __toString(): string
     {
-        $this->createdAt = new \DateTimeImmutable();
-    }
-
-    #[ORM\PreUpdate]
-    public function setUpdatedAtValue(): void
-    {
-        $this->updatedAt = new \DateTimeImmutable();
+        return sprintf('邮件任务#%s: %s -> %s', $this->id ?? 'NEW', $this->fromEmail ?? '', $this->toEmail ?? '');
     }
 
     public function getId(): ?int
@@ -207,23 +203,23 @@ class MailTask
         return $this;
     }
 
-    public function getScheduledAt(): ?\DateTimeImmutable
+    public function getScheduledTime(): ?\DateTimeImmutable
     {
-        return $this->scheduledAt;
+        return $this->scheduledTime;
     }
 
-    public function setScheduledAt(?\DateTimeImmutable $scheduledAt): self
+    public function setScheduledTime(?\DateTimeImmutable $scheduledTime): self
     {
-        $this->scheduledAt = $scheduledAt;
+        $this->scheduledTime = $scheduledTime;
         return $this;
     }
 
-    public function getStatus(): string
+    public function getStatus(): MailTaskStatus
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): self
+    public function setStatus(MailTaskStatus $status): self
     {
         $this->status = $status;
         return $this;
@@ -262,24 +258,14 @@ class MailTask
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getSentTime(): ?\DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->sentTime;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function setSentTime(?\DateTimeImmutable $sentTime): self
     {
-        return $this->updatedAt;
-    }
-
-    public function getSentAt(): ?\DateTimeImmutable
-    {
-        return $this->sentAt;
-    }
-
-    public function setSentAt(?\DateTimeImmutable $sentAt): self
-    {
-        $this->sentAt = $sentAt;
+        $this->sentTime = $sentTime;
         return $this;
     }
 
@@ -289,14 +275,14 @@ class MailTask
     public function isReadyToSend(): bool
     {
         // 只有状态为等待中的任务才能发送
-        if ($this->status !== self::STATUS_PENDING) {
+        if ($this->status !== MailTaskStatus::PENDING) {
             return false;
         }
 
         // 如果有计划发送时间，检查是否到达发送时间
-        if ($this->scheduledAt !== null) {
+        if ($this->scheduledTime !== null) {
             $now = new \DateTimeImmutable();
-            if ($this->scheduledAt > $now) {
+            if ($this->scheduledTime > $now) {
                 return false;
             }
         }
@@ -309,8 +295,7 @@ class MailTask
      */
     public function markAsProcessing(): self
     {
-        $this->status = self::STATUS_PROCESSING;
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->status = MailTaskStatus::PROCESSING;
         return $this;
     }
 
@@ -319,9 +304,8 @@ class MailTask
      */
     public function markAsSent(): self
     {
-        $this->status = self::STATUS_SENT;
-        $this->sentAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->status = MailTaskStatus::SENT;
+        $this->sentTime = new \DateTimeImmutable();
         return $this;
     }
 
@@ -330,9 +314,8 @@ class MailTask
      */
     public function markAsFailed(?string $errorMessage = null): self
     {
-        $this->status = self::STATUS_FAILED;
+        $this->status = MailTaskStatus::FAILED;
         $this->statusMessage = $errorMessage;
-        $this->updatedAt = new \DateTimeImmutable();
         return $this;
     }
 }

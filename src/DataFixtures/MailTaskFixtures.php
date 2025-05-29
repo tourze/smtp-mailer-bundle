@@ -7,6 +7,7 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
+use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 
 /**
  * 邮件任务数据填充
@@ -31,8 +32,8 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
         $sentTask->setBody($this->getWelcomeEmailBody());
         $sentTask->setIsHtml(true);
         $sentTask->setSmtpConfig($gmailConfig);
-        $sentTask->setStatus(MailTask::STATUS_SENT);
-        $sentTask->setSentAt(new \DateTimeImmutable('-2 hours'));
+        $sentTask->setStatus(MailTaskStatus::SENT);
+        $sentTask->setSentTime(new \DateTimeImmutable('-2 hours'));
 
         $manager->persist($sentTask);
 
@@ -47,7 +48,7 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
         $pendingTask->setIsHtml(true);
         $pendingTask->setCc(['manager@example.com', 'sales@example.com']);
         $pendingTask->setSelectorStrategy('priority');
-        $pendingTask->setStatus(MailTask::STATUS_PENDING);
+        $pendingTask->setStatus(MailTaskStatus::PENDING);
 
         $manager->persist($pendingTask);
 
@@ -61,8 +62,8 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
         $scheduledTask->setBody($this->getNewsletterEmailBody());
         $scheduledTask->setIsHtml(true);
         $scheduledTask->setSmtpConfig($outlookConfig);
-        $scheduledTask->setScheduledAt(new \DateTimeImmutable('+1 hour'));
-        $scheduledTask->setStatus(MailTask::STATUS_PENDING);
+        $scheduledTask->setScheduledTime(new \DateTimeImmutable('+1 hour'));
+        $scheduledTask->setStatus(MailTaskStatus::PENDING);
 
         $manager->persist($scheduledTask);
 
@@ -76,7 +77,7 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
         $failedTask->setBody('感谢您联系我们的技术支持团队。我们已经收到您的问题，将在24小时内回复。');
         $failedTask->setIsHtml(false);
         $failedTask->setSmtpConfig($qqConfig);
-        $failedTask->setStatus(MailTask::STATUS_FAILED);
+        $failedTask->setStatus(MailTaskStatus::FAILED);
         $failedTask->setStatusMessage('SMTP Error: 域名不存在');
 
         $manager->persist($failedTask);
@@ -103,7 +104,7 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
             ]
         ]);
         $attachmentTask->setSelectorStrategy('weighted');
-        $attachmentTask->setStatus(MailTask::STATUS_PENDING);
+        $attachmentTask->setStatus(MailTaskStatus::PENDING);
 
         $manager->persist($attachmentTask);
 
@@ -117,7 +118,7 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
         $processingTask->setBody('系统备份已于今日凌晨完成，备份文件大小：2.5GB，备份状态：成功。');
         $processingTask->setIsHtml(false);
         $processingTask->setSelectorStrategy('round_robin');
-        $processingTask->setStatus(MailTask::STATUS_PROCESSING);
+        $processingTask->setStatus(MailTaskStatus::PROCESSING);
 
         $manager->persist($processingTask);
 
@@ -136,7 +137,7 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
             'customer3@example.com'
         ]);
         $massEmailTask->setSelectorStrategy('random');
-        $massEmailTask->setStatus(MailTask::STATUS_PENDING);
+        $massEmailTask->setStatus(MailTaskStatus::PENDING);
 
         $manager->persist($massEmailTask);
 

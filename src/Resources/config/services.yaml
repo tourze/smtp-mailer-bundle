@@ -4,30 +4,15 @@ services:
     autowire: true      # Automatically injects dependencies in your services.
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
-  # 注册控制器
   Tourze\SMTPMailerBundle\Controller\:
     resource: '../../Controller/'
-    tags: ['controller.service_arguments']
-
-  # 注册命令
   Tourze\SMTPMailerBundle\Command\:
     resource: '../../Command/'
-    tags: ['console.command']
-
-  # 注册Repository
-  Tourze\SMTPMailerBundle\Repository\:
-    resource: '../../Repository/'
-
-  # 注册Service
-  Tourze\SMTPMailerBundle\Service\:
-    resource: '../../Service/'
-
-  # 注册策略类
-  Tourze\SMTPMailerBundle\Service\SMTPSelector\:
-    resource: '../../Service/SMTPSelector/'
-    tags: ['smtp_mailer.selector_strategy']
-
-  # 注册消息处理器
+  Tourze\SMTPMailerBundle\DataFixtures\:
+    resource: '../../DataFixtures/'
   Tourze\SMTPMailerBundle\MessageHandler\:
     resource: '../../MessageHandler/'
-    tags: ['messenger.message_handler']
+  Tourze\SMTPMailerBundle\Repository\:
+    resource: '../../Repository/'
+  Tourze\SMTPMailerBundle\Service\:
+    resource: '../../Service/'

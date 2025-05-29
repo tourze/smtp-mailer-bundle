@@ -3,6 +3,7 @@
 namespace Tourze\SMTPMailerBundle\Controller\Admin;
 
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -20,12 +21,14 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
+use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 use Tourze\SMTPMailerBundle\Service\SMTPMailerService;
 use Tourze\SMTPMailerBundle\Service\SMTPSelectorService;
 
 /**
  * 邮件任务管理控制器
  */
+#[AdminCrud(routePath: '/smtp/task', routeName: 'smtp_task')]
 class MailTaskCrudController extends AbstractCrudController
 {
     public function __construct(
@@ -71,21 +74,16 @@ class MailTaskCrudController extends AbstractCrudController
 
         yield BooleanField::new('isHtml', 'HTML格式');
         yield TextareaField::new('attachments', '附件')->hideOnIndex();
-        yield DateTimeField::new('scheduledAt', '计划发送时间')->hideOnIndex();
+        yield DateTimeField::new('scheduledTime', '计划发送时间')->hideOnIndex();
 
         yield ChoiceField::new('status', '状态')
-            ->setChoices([
-                '待处理' => MailTask::STATUS_PENDING,
-                '处理中' => MailTask::STATUS_PROCESSING,
-                '已发送' => MailTask::STATUS_SENT,
-                '失败' => MailTask::STATUS_FAILED,
-            ])
-            ->renderAsBadges([
-                MailTask::STATUS_PENDING => 'warning',
-                MailTask::STATUS_PROCESSING => 'info',
-                MailTask::STATUS_SENT => 'success',
-                MailTask::STATUS_FAILED => 'danger',
-            ]);
+            ->setChoices(array_combine(
+                array_map(fn($case) => $case->getLabel(), MailTaskStatus::cases()),
+                MailTaskStatus::cases()
+            ))
+            ->formatValue(function (MailTaskStatus $value) {
+                return "<span class=\"badge badge-{$value->getBadge()}\">{$value->getLabel()}</span>";
+            });
 
         yield TextareaField::new('statusMessage', '状态信息')->hideOnIndex();
         yield AssociationField::new('smtpConfig', 'SMTP配置')->hideOnIndex();
@@ -101,9 +99,9 @@ class MailTaskCrudController extends AbstractCrudController
             ->setHelp('用于选择SMTP配置的策略')
             ->hideOnIndex();
 
-        yield DateTimeField::new('createdAt', '创建时间');
-        yield DateTimeField::new('updatedAt', '更新时间')->hideOnIndex();
-        yield DateTimeField::new('sentAt', '发送时间')->hideOnIndex();
+        yield DateTimeField::new('createTime', '创建时间');
+        yield DateTimeField::new('updateTime', '更新时间')->hideOnIndex();
+        yield DateTimeField::new('sentTime', '发送时间')->hideOnIndex();
     }
 
     public function configureActions(Actions $actions): Actions
@@ -111,7 +109,7 @@ class MailTaskCrudController extends AbstractCrudController
         // 添加重发按钮
         $resend = Action::new('resend', '重新发送')
             ->linkToCrudAction('resendAction')
-            ->displayIf(fn(MailTask $entity) => $entity->getStatus() === MailTask::STATUS_FAILED);
+            ->displayIf(fn(MailTask $entity) => $entity->getStatus() === MailTaskStatus::FAILED);
 
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)

@@ -2,72 +2,71 @@
 
 namespace Tourze\SMTPMailerBundle\Entity;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\SMTPMailerBundle\Repository\SMTPConfigRepository;
 
 #[ORM\Entity(repositoryClass: SMTPConfigRepository::class)]
-#[ORM\Table(name: 'smtp_config')]
-#[ORM\HasLifecycleCallbacks]
-class SMTPConfig
+#[ORM\Table(
+    name: 'smtp_config',
+    options: ['comment' => 'SMTP配置表']
+)]
+class SMTPConfig implements \Stringable
 {
+    use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '配置名称'])]
     #[Assert\NotBlank]
+    #[IndexColumn]
     private string $name;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'SMTP服务器地址'])]
     #[Assert\NotBlank]
     private string $host;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'SMTP端口'])]
     #[Assert\NotBlank]
     #[Assert\Range(min: 1, max: 65535)]
     private int $port = 587;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '用户名'])]
     private ?string $username = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '密码'])]
     private ?string $password = null;
 
-    #[ORM\Column(length: 20)]
+    #[ORM\Column(type: Types::STRING, length: 20, options: ['comment' => '加密方式'])]
     private string $encryption = 'tls';
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '超时时间(秒)'])]
     private int $timeout = 30;
 
-    #[ORM\Column(length: 50, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '认证方式'])]
     private ?string $authMode = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '权重'])]
+    #[IndexColumn]
     private int $weight = 1;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '优先级'])]
+    #[IndexColumn]
     private int $priority = 0;
 
-    #[ORM\Column]
-    private bool $enabled = true;
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否有效'])]
+    #[IndexColumn]
+    private bool $valid = true;
 
-    #[ORM\Column]
-    private \DateTimeImmutable $createdAt;
-
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updatedAt = null;
-
-    public function __construct()
+    public function __toString(): string
     {
-        $this->createdAt = new \DateTimeImmutable();
-    }
-
-    #[ORM\PreUpdate]
-    public function setUpdatedAtValue(): void
-    {
-        $this->updatedAt = new \DateTimeImmutable();
+        return $this->name;
     }
 
     public function getId(): ?int
@@ -185,25 +184,15 @@ class SMTPConfig
         return $this;
     }
 
-    public function isEnabled(): bool
+    public function isValid(): bool
     {
-        return $this->enabled;
+        return $this->valid;
     }
 
-    public function setEnabled(bool $enabled): self
+    public function setValid(bool $valid): self
     {
-        $this->enabled = $enabled;
+        $this->valid = $valid;
         return $this;
-    }
-
-    public function getCreatedAt(): \DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
     }
 
     /**
@@ -244,10 +233,5 @@ class SMTPConfig
         }
 
         return $dsn;
-    }
-
-    public function __toString(): string
-    {
-        return $this->name;
     }
 }

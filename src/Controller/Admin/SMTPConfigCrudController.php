@@ -2,6 +2,7 @@
 
 namespace Tourze\SMTPMailerBundle\Controller\Admin;
 
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -17,6 +18,7 @@ use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 /**
  * SMTP配置管理控制器
  */
+#[AdminCrud(routePath: '/smtp/config', routeName: 'smtp_config')]
 class SMTPConfigCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
@@ -53,9 +55,9 @@ class SMTPConfigCrudController extends AbstractCrudController
         yield TextField::new('authMode', '认证模式')->hideOnIndex();
         yield IntegerField::new('weight', '权重')->setHelp('用于权重选择策略，值越大优先级越高');
         yield IntegerField::new('priority', '优先级')->setHelp('用于优先级选择策略，值越大优先级越高');
-        yield BooleanField::new('enabled', '启用状态');
-        yield DateTimeField::new('createdAt', '创建时间')->hideOnForm();
-        yield DateTimeField::new('updatedAt', '更新时间')->hideOnForm();
+        yield BooleanField::new('valid', '启用状态');
+        yield DateTimeField::new('createTime', '创建时间')->hideOnForm();
+        yield DateTimeField::new('updateTime', '更新时间')->hideOnForm();
     }
 
     public function configureActions(Actions $actions): Actions
