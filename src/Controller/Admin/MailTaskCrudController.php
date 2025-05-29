@@ -9,14 +9,15 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\CodeEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -60,13 +61,12 @@ class MailTaskCrudController extends AbstractCrudController
         yield TextField::new('fromName', '发件人名称');
         yield EmailField::new('toEmail', '收件人邮箱');
         yield TextField::new('toName', '收件人名称');
-        yield TextareaField::new('cc', '抄送')->hideOnIndex();
-        yield TextareaField::new('bcc', '密送')->hideOnIndex();
+        yield ArrayField::new('cc', '抄送')->hideOnIndex();
+        yield ArrayField::new('bcc', '密送')->hideOnIndex();
         yield TextField::new('subject', '邮件主题');
 
         if ($pageName === Crud::PAGE_DETAIL || $pageName === Crud::PAGE_EDIT) {
-            yield CodeEditorField::new('body', '邮件内容')
-                ->setLanguage('html')
+            yield TextEditorField::new('body', '邮件内容')
                 ->setNumOfRows(20);
         } else {
             yield TextareaField::new('body', '邮件内容')->hideOnIndex();
