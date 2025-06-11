@@ -192,7 +192,7 @@ class SMTPMailerBundleTest extends TestCase
             $serialized = serialize($this->bundle);
             $unserialized = unserialize($serialized);
             $this->assertInstanceOf(SMTPMailerBundle::class, $unserialized);
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             // 如果Bundle不支持序列化，这是正常的
             $this->addToAssertionCount(1);
         }

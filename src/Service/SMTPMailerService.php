@@ -272,7 +272,7 @@ class SMTPMailerService
             $this->entityManager->flush();
 
             return $result;
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('邮件发送异常', [
                 'id' => $mailTask->getId(),
                 'error' => $e->getMessage()
