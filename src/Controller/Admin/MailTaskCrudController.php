@@ -130,7 +130,7 @@ class MailTaskCrudController extends AbstractCrudController
         try {
             $this->mailerService->resendFailedMail($id);
             $this->addFlash('success', sprintf('邮件 #%d 已加入发送队列', $id));
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $this->addFlash('danger', sprintf('邮件 #%d 重发失败: %s', $id, $e->getMessage()));
         }
 

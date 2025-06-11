@@ -58,7 +58,7 @@ class SendMailMessageHandler
             } else {
                 $mailTask->markAsFailed('邮件发送失败');
             }
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             $this->logger->error('邮件发送异常', [
                 'id' => $mailTaskId,
                 'error' => $e->getMessage()

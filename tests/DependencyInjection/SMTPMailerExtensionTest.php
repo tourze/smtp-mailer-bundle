@@ -185,7 +185,7 @@ class SMTPMailerExtensionTest extends TestCase
         try {
             $this->extension->load($configs, $this->container);
             $this->assertTrue(true); // 如果没有异常，测试通过
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             // 如果配置文件不存在，这是可以接受的
             if (strpos($e->getMessage(), 'services.yaml') !== false) {
                 $this->markTestSkipped('Services configuration file not available');
@@ -222,7 +222,7 @@ class SMTPMailerExtensionTest extends TestCase
                 try {
                     $parsed = yaml_parse($content);
                     $this->assertIsArray($parsed);
-                } catch (\Exception $e) {
+                } catch  (\Throwable $e) {
                     // 如果解析失败，只检查内容不为空
                     $this->assertNotEmpty($content);
                 }
@@ -247,7 +247,7 @@ class SMTPMailerExtensionTest extends TestCase
         try {
             $this->extension->load($configs, $this->container);
             $this->assertTrue(true);
-        } catch (\Exception $e) {
+        } catch  (\Throwable $e) {
             // 如果配置文件不存在，跳过测试
             if (strpos($e->getMessage(), 'services.yaml') !== false) {
                 $this->markTestSkipped('Services configuration file not available');
