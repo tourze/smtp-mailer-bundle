@@ -214,7 +214,7 @@ class ProcessScheduledControllerTest extends TestCase
         // 检查是否有Route属性
         $routeAttribute = null;
         foreach ($attributes as $attribute) {
-            if ($attribute->getName() === 'Symfony\Component\Routing\Annotation\Route') {
+            if ($attribute->getName() === 'Symfony\Component\Routing\Attribute\Route') {
                 $routeAttribute = $attribute;
                 break;
             }
