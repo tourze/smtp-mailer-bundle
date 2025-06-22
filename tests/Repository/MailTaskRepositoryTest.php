@@ -55,7 +55,7 @@ class MailTaskRepositoryTest extends TestCase
         // 测试返回类型
         $this->assertTrue($method->hasReturnType());
         $returnType = $method->getReturnType();
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals('array', (string) $returnType);
     }
 
     /**
@@ -72,7 +72,7 @@ class MailTaskRepositoryTest extends TestCase
         // 测试返回类型
         $this->assertTrue($method->hasReturnType());
         $returnType = $method->getReturnType();
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals('array', (string) $returnType);
     }
 
     /**
@@ -91,7 +91,7 @@ class MailTaskRepositoryTest extends TestCase
         // 测试返回类型
         $this->assertTrue($method->hasReturnType());
         $returnType = $method->getReturnType();
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals('array', (string) $returnType);
     }
 
     /**
@@ -115,7 +115,7 @@ class MailTaskRepositoryTest extends TestCase
         // 测试返回类型
         $this->assertTrue($method->hasReturnType());
         $returnType = $method->getReturnType();
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals('array', (string) $returnType);
     }
 
     /**
@@ -134,7 +134,7 @@ class MailTaskRepositoryTest extends TestCase
         // 测试返回类型
         $this->assertTrue($method->hasReturnType());
         $returnType = $method->getReturnType();
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals('array', (string) $returnType);
     }
 
     /**
@@ -232,7 +232,6 @@ class MailTaskRepositoryTest extends TestCase
     public function testStatusValues(string $status): void
     {
         // 验证状态值是有效的字符串
-        $this->assertIsString($status);
         $this->assertNotEmpty($status);
         
         // 验证状态值在预期范围内
@@ -273,7 +272,7 @@ class MailTaskRepositoryTest extends TestCase
     {
         $smtpConfigId = 123;
         
-        $this->assertIsInt($smtpConfigId);
+        // $smtpConfigId 已经是 int 类型，移除冗余检查
         $this->assertGreaterThan(0, $smtpConfigId);
     }
 } 

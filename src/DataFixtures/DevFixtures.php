@@ -61,7 +61,7 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
             
             // 随机分配SMTP配置
             $config = $configs[array_rand($configs)];
-            if ($config) {
+            if (null !== $config) {
                 $task->setSmtpConfig($config);
             }
 

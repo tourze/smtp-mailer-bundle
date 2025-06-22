@@ -14,7 +14,7 @@ use Tourze\SMTPMailerBundle\Service\SMTPMailerService;
 class ProcessScheduledController extends AbstractController
 {
     #[Route('/admin/process-scheduled', name: 'smtp_mailer_process_scheduled')]
-    public function processScheduled(Request $request, SMTPMailerService $mailerService): Response
+    public function __invoke(Request $request, SMTPMailerService $mailerService): Response
     {
         $count = $mailerService->processScheduledTasks();
 
@@ -26,7 +26,7 @@ class ProcessScheduledController extends AbstractController
 
         // 如果是从后台点击，返回到后台
         $referer = $request->headers->get('referer');
-        if ($referer && str_contains($referer, '/admin')) {
+        if (null !== $referer && str_contains($referer, '/admin')) {
             return $this->redirect($referer);
         }
 

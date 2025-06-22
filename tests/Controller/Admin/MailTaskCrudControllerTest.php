@@ -44,7 +44,7 @@ class MailTaskCrudControllerTest extends TestCase
 
     public function testConfigureCrudMethodExists(): void
     {
-        $this->assertTrue(method_exists(MailTaskCrudController::class, 'configureCrud'));
+        // 方法必然存在，移除冗余检查
         
         $reflection = new \ReflectionClass(MailTaskCrudController::class);
         $method = $reflection->getMethod('configureCrud');
@@ -58,7 +58,7 @@ class MailTaskCrudControllerTest extends TestCase
 
     public function testConfigureFieldsMethodExists(): void
     {
-        $this->assertTrue(method_exists(MailTaskCrudController::class, 'configureFields'));
+        // 方法必然存在，移除冗余检查
         
         $reflection = new \ReflectionClass(MailTaskCrudController::class);
         $method = $reflection->getMethod('configureFields');
@@ -69,12 +69,12 @@ class MailTaskCrudControllerTest extends TestCase
         $parameter = $method->getParameters()[0];
         $this->assertEquals('pageName', $parameter->getName());
         $this->assertTrue($parameter->hasType());
-        $this->assertEquals('string', $parameter->getType()->getName());
+        $this->assertEquals('string', (string) $parameter->getType());
     }
 
     public function testConfigureActionsMethodExists(): void
     {
-        $this->assertTrue(method_exists(MailTaskCrudController::class, 'configureActions'));
+        // 方法必然存在，移除冗余检查
         
         $reflection = new \ReflectionClass(MailTaskCrudController::class);
         $method = $reflection->getMethod('configureActions');
@@ -85,7 +85,7 @@ class MailTaskCrudControllerTest extends TestCase
 
     public function testResendActionMethodExists(): void
     {
-        $this->assertTrue(method_exists(MailTaskCrudController::class, 'resendAction'));
+        // 方法必然存在，移除冗余检查
         
         $reflection = new \ReflectionClass(MailTaskCrudController::class);
         $method = $reflection->getMethod('resendAction');
@@ -194,7 +194,7 @@ class MailTaskCrudControllerTest extends TestCase
         // getEntityFqcn应该返回string
         $getEntityMethod = $reflection->getMethod('getEntityFqcn');
         $this->assertTrue($getEntityMethod->hasReturnType());
-        $this->assertEquals('string', $getEntityMethod->getReturnType()->getName());
+        $this->assertEquals('string', (string) $getEntityMethod->getReturnType());
         
         // resendAction应该返回RedirectResponse
         $resendMethod = $reflection->getMethod('resendAction');

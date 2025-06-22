@@ -202,10 +202,10 @@ class SMTPConfig implements \Stringable
     {
         $dsn = 'smtp://';
 
-        if ($this->username) {
+        if (null !== $this->username && '' !== $this->username) {
             $dsn .= urlencode($this->username);
 
-            if ($this->password) {
+            if (null !== $this->password && '' !== $this->password) {
                 $dsn .= ':' . urlencode($this->password);
             }
 
@@ -216,11 +216,11 @@ class SMTPConfig implements \Stringable
 
         $params = [];
 
-        if ($this->encryption && $this->encryption !== 'none') {
+        if ('' !== $this->encryption && $this->encryption !== 'none') {
             $params['encryption'] = $this->encryption;
         }
 
-        if ($this->authMode) {
+        if (null !== $this->authMode && '' !== $this->authMode) {
             $params['auth_mode'] = $this->authMode;
         }
 

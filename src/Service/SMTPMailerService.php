@@ -155,7 +155,7 @@ class SMTPMailerService
         // 获取SMTP配置
         $smtpConfig = $this->smtpConfigRepository->find($configId);
 
-        if (!$smtpConfig) {
+        if (null === $smtpConfig) {
             throw new \InvalidArgumentException('SMTP配置不存在: ' . $configId);
         }
 
@@ -244,7 +244,7 @@ class SMTPMailerService
             $result = false;
 
             // 如果指定了SMTP配置，使用该配置发送
-            if ($mailTask->getSmtpConfig()) {
+            if (null !== $mailTask->getSmtpConfig()) {
                 $result = $this->mailSenderService->sendMailTaskWithConfig(
                     $mailTask,
                     $mailTask->getSmtpConfig()
@@ -254,7 +254,7 @@ class SMTPMailerService
                 $strategy = $mailTask->getSelectorStrategy();
                 $smtpConfig = $this->smtpSelectorService->selectConfig($strategy);
 
-                if ($smtpConfig) {
+                if (null !== $smtpConfig) {
                     $result = $this->mailSenderService->sendMailTaskWithConfig($mailTask, $smtpConfig);
                 } else {
                     // 如果没有可用的SMTP配置，使用默认的邮件发送方式
@@ -292,7 +292,7 @@ class SMTPMailerService
     {
         $mailTask = $this->mailTaskRepository->find($mailTaskId);
 
-        if (!$mailTask) {
+        if (null === $mailTask) {
             throw new \InvalidArgumentException('邮件任务不存在: ' . $mailTaskId);
         }
 

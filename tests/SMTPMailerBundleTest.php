@@ -46,7 +46,7 @@ class SMTPMailerBundleTest extends TestCase
     {
         // 测试Bundle路径
         $path = $this->bundle->getPath();
-        $this->assertIsString($path);
+        // Bundle::getPath() 总是返回 string，移除冗余类型检查
         $this->assertStringContainsString('smtp-mailer-bundle', $path);
         // 路径应该指向src目录
         $this->assertStringEndsWith('/src', $path);
@@ -127,23 +127,7 @@ class SMTPMailerBundleTest extends TestCase
         }
     }
 
-    public function testBundleMethodsExist(): void
-    {
-        // 验证Bundle的标准方法存在
-        $this->assertTrue(method_exists($this->bundle, 'getName'));
-        $this->assertTrue(method_exists($this->bundle, 'getNamespace'));
-        $this->assertTrue(method_exists($this->bundle, 'getPath'));
-        $this->assertTrue(method_exists($this->bundle, 'getContainerExtension'));
-    }
-
-    public function testBundleMethodsAreCallable(): void
-    {
-        // 验证Bundle方法是可调用的
-        $this->assertIsCallable([$this->bundle, 'getName']);
-        $this->assertIsCallable([$this->bundle, 'getNamespace']);
-        $this->assertIsCallable([$this->bundle, 'getPath']);
-        $this->assertIsCallable([$this->bundle, 'getContainerExtension']);
-    }
+    // 移除冗余的方法存在性测试 - Bundle类总是会有这些方法
 
     public function testBundleNoConstructorParameters(): void
     {
@@ -202,7 +186,7 @@ class SMTPMailerBundleTest extends TestCase
     {
         // 测试Bundle的字符串表示
         $bundleName = $this->bundle->getName();
-        $this->assertIsString($bundleName);
+        // Bundle::getName() 总是返回 string，移除冗余的类型检查
         // Bundle的名称应该包含类名
         $this->assertStringContainsString('SMTPMailerBundle', $bundleName);
     }

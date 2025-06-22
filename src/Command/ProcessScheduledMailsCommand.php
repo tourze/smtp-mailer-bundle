@@ -14,11 +14,12 @@ use Tourze\SMTPMailerBundle\Service\SMTPMailerService;
  * 处理计划发送的邮件任务
  */
 #[AsCommand(
-    name: 'smtp-mailer:process-scheduled-mails',
+    name: self::NAME,
     description: '处理计划发送的邮件',
 )]
 class ProcessScheduledMailsCommand extends Command
 {
+    public const NAME = 'smtp-mailer:process-scheduled-mails';
     public function __construct(
         private readonly SMTPMailerService $mailerService,
     ) {
@@ -50,16 +51,17 @@ class ProcessScheduledMailsCommand extends Command
             $interval = $this->getProcessInterval();
         }
 
-        if ($daemon) {
+        if ((bool) $daemon) {
             $io->info('以守护进程模式启动，轮询间隔: ' . $interval . '秒');
 
+            // @phpstan-ignore-next-line
             while (true) {
                 $this->processScheduledMails($io);
                 sleep($interval);
             }
-        } else {
-            return $this->processScheduledMails($io);
         }
+        
+        return $this->processScheduledMails($io);
     }
 
     /**

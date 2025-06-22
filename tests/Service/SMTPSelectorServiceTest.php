@@ -43,7 +43,7 @@ class SMTPSelectorServiceTest extends TestCase
         $roundRobinStrategy->method('select')->with($configs)->willReturn($config);
         
         // 创建服务实例
-        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies, 'round_robin');
+        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies);
         
         // 验证默认策略（round_robin）被使用
         $result = $service->selectConfig();
@@ -77,7 +77,7 @@ class SMTPSelectorServiceTest extends TestCase
         $randomStrategy->method('select')->with($configs)->willReturn($config2);
         
         // 创建服务实例
-        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies, 'round_robin');
+        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies);
         
         // 测试指定策略
         $result = $service->selectConfig('random');
@@ -102,7 +102,7 @@ class SMTPSelectorServiceTest extends TestCase
         $roundRobinStrategy->method('select')->with($configs)->willReturn($config);
         
         // 创建服务实例
-        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies, 'round_robin');
+        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies);
         
         // 使用不存在的策略应该回落到默认策略
         $result = $service->selectConfig('non_existent');
@@ -119,7 +119,7 @@ class SMTPSelectorServiceTest extends TestCase
         $this->smtpConfigRepository->method('findAllEnabled')->willReturn([]);
         
         // 创建服务实例
-        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies, 'round_robin');
+        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies);
         
         // 应该返回null因为没有可用配置
         $result = $service->selectConfig();
@@ -137,7 +137,7 @@ class SMTPSelectorServiceTest extends TestCase
         $this->smtpConfigRepository->method('findAllEnabled')->willReturn($configs);
         
         // 创建没有策略的服务实例
-        $service = new SMTPSelectorService($this->smtpConfigRepository, [], 'round_robin');
+        $service = new SMTPSelectorService($this->smtpConfigRepository, []);
         
         // 没有策略应该返回第一个配置
         $result = $service->selectConfig();
@@ -156,7 +156,7 @@ class SMTPSelectorServiceTest extends TestCase
         ];
         
         // 创建服务实例
-        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies, 'round_robin');
+        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies);
         
         // 验证可用策略列表
         $expected = [
@@ -174,7 +174,7 @@ class SMTPSelectorServiceTest extends TestCase
         $strategies = ['round_robin' => $roundRobinStrategy];
         
         // 创建服务实例
-        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies, 'round_robin');
+        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies);
         
         // 验证默认策略
         $this->assertSame('round_robin', $service->getDefaultStrategy());
@@ -187,7 +187,7 @@ class SMTPSelectorServiceTest extends TestCase
         $strategies = ['random' => $randomStrategy];
         
         // 创建服务实例 - 指定了不存在的默认策略 'round_robin'
-        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies, 'round_robin');
+        $service = new SMTPSelectorService($this->smtpConfigRepository, $strategies);
         
         // 验证默认策略应该回落到第一个可用策略
         $this->assertSame('random', $service->getDefaultStrategy());

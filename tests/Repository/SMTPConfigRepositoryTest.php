@@ -53,7 +53,7 @@ class SMTPConfigRepositoryTest extends TestCase
         // 测试返回类型
         $this->assertTrue($method->hasReturnType());
         $returnType = $method->getReturnType();
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals('array', (string) $returnType);
     }
 
     /**
@@ -70,7 +70,7 @@ class SMTPConfigRepositoryTest extends TestCase
         // 测试返回类型
         $this->assertTrue($method->hasReturnType());
         $returnType = $method->getReturnType();
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals('array', (string) $returnType);
     }
 
     /**
@@ -87,7 +87,7 @@ class SMTPConfigRepositoryTest extends TestCase
         // 测试返回类型
         $this->assertTrue($method->hasReturnType());
         $returnType = $method->getReturnType();
-        $this->assertEquals('array', $returnType->getName());
+        $this->assertEquals('array', (string) $returnType);
     }
 
     /**
@@ -104,7 +104,7 @@ class SMTPConfigRepositoryTest extends TestCase
         // 测试返回类型
         $this->assertTrue($method->hasReturnType());
         $returnType = $method->getReturnType();
-        $this->assertEquals('int', $returnType->getName());
+        $this->assertEquals('int', (string) $returnType);
     }
 
     /**
@@ -196,13 +196,13 @@ class SMTPConfigRepositoryTest extends TestCase
         foreach ($arrayMethods as $methodName) {
             $method = $reflection->getMethod($methodName);
             $returnType = $method->getReturnType();
-            $this->assertEquals('array', $returnType->getName(), "Method {$methodName} should return array");
+            $this->assertEquals('array', (string) $returnType, "Method {$methodName} should return array");
         }
         
         // 测试返回int的方法
         $countMethod = $reflection->getMethod('countEnabled');
         $returnType = $countMethod->getReturnType();
-        $this->assertEquals('int', $returnType->getName(), "Method countEnabled should return int");
+        $this->assertEquals('int', (string) $returnType, "Method countEnabled should return int");
     }
 
     /**
@@ -217,12 +217,10 @@ class SMTPConfigRepositoryTest extends TestCase
         $config->setPassword('password');
         $config->setEncryption('tls');
         
-        // 测试DSN生成方法存在
-        $this->assertTrue(method_exists($config, 'getDsn'));
+        // 方法必然存在，移除冗余检查
         
         // 测试生成的DSN
         $dsn = $config->getDsn();
-        $this->assertIsString($dsn);
         $this->assertStringContainsString('smtp.example.com', $dsn);
         $this->assertStringContainsString('587', $dsn);
     }

@@ -11,7 +11,7 @@ use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 
 class SMTPConfigCrudControllerTest extends TestCase
 {
-    private SMTPConfigCrudController $controller;
+    private SMTPConfigCrudController&MockObject $controller;
 
     protected function setUp(): void
     {
@@ -36,7 +36,7 @@ class SMTPConfigCrudControllerTest extends TestCase
     public function testConfigureCrud(): void
     {
         // 测试configureCrud方法是否存在且可调用
-        $this->assertTrue(method_exists($this->controller, 'configureCrud'));
+        // 方法必然存在，移除冗余检查
         
         $reflection = new \ReflectionClass($this->controller);
         $method = $reflection->getMethod('configureCrud');
@@ -76,7 +76,7 @@ class SMTPConfigCrudControllerTest extends TestCase
     public function testConfigureActions(): void
     {
         // 测试configureActions方法是否存在且可调用
-        $this->assertTrue(method_exists($this->controller, 'configureActions'));
+        // 方法必然存在，移除冗余检查
         
         $reflection = new \ReflectionClass($this->controller);
         $method = $reflection->getMethod('configureActions');
@@ -87,7 +87,7 @@ class SMTPConfigCrudControllerTest extends TestCase
     public function testEncryptionChoicesConfiguration(): void
     {
         // 测试加密方式的字段配置方法存在
-        $this->assertTrue(method_exists($this->controller, 'configureFields'));
+        // 方法必然存在，移除冗余检查
         
         // 验证可以为不同页面配置字段
         $fields = iterator_to_array($this->controller->configureFields(Crud::PAGE_NEW));
@@ -190,7 +190,7 @@ class SMTPConfigCrudControllerTest extends TestCase
         $parameter = $method->getParameters()[0];
         $this->assertEquals('pageName', $parameter->getName());
         $this->assertTrue($parameter->hasType());
-        $this->assertEquals('string', $parameter->getType()->getName());
+        $this->assertEquals('string', (string) $parameter->getType());
     }
 
     public function testFieldsContainRequiredProperties(): void

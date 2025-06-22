@@ -74,28 +74,28 @@ class MailSenderService
         $email = new Email();
 
         // 设置发件人
-        if ($mailTask->getFromName()) {
+        if (null !== $mailTask->getFromName() && '' !== $mailTask->getFromName()) {
             $email->from(new Address($mailTask->getFromEmail(), $mailTask->getFromName()));
         } else {
             $email->from($mailTask->getFromEmail());
         }
 
         // 设置收件人
-        if ($mailTask->getToName()) {
+        if (null !== $mailTask->getToName() && '' !== $mailTask->getToName()) {
             $email->to(new Address($mailTask->getToEmail(), $mailTask->getToName()));
         } else {
             $email->to($mailTask->getToEmail());
         }
 
         // 设置抄送
-        if ($mailTask->getCc()) {
+        if (null !== $mailTask->getCc() && [] !== $mailTask->getCc()) {
             foreach ($mailTask->getCc() as $cc) {
                 $email->addCc($cc);
             }
         }
 
         // 设置密送
-        if ($mailTask->getBcc()) {
+        if (null !== $mailTask->getBcc() && [] !== $mailTask->getBcc()) {
             foreach ($mailTask->getBcc() as $bcc) {
                 $email->addBcc($bcc);
             }
@@ -112,7 +112,7 @@ class MailSenderService
         }
 
         // 添加附件
-        if ($mailTask->getAttachments()) {
+        if (null !== $mailTask->getAttachments() && [] !== $mailTask->getAttachments()) {
             foreach ($mailTask->getAttachments() as $attachment) {
                 if (isset($attachment['path']) && file_exists($attachment['path'])) {
                     $email->attachFromPath(
