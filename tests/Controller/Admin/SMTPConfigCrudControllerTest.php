@@ -11,7 +11,7 @@ use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 
 class SMTPConfigCrudControllerTest extends TestCase
 {
-    private SMTPConfigCrudController&MockObject $controller;
+    private SMTPConfigCrudController $controller;
 
     protected function setUp(): void
     {
