@@ -7,6 +7,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
 use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
+use Tourze\SMTPMailerBundle\Exception\MailTaskNotFoundException;
+use Tourze\SMTPMailerBundle\Exception\SMTPConfigNotFoundException;
 use Tourze\SMTPMailerBundle\Message\SendMailMessage;
 use Tourze\SMTPMailerBundle\Repository\MailTaskRepository;
 use Tourze\SMTPMailerBundle\Repository\SMTPConfigRepository;
@@ -24,8 +26,7 @@ class SMTPMailerService
         private readonly MailSenderService $mailSenderService,
         private readonly MessageBusInterface $messageBus,
         private readonly LoggerInterface $logger,
-    ) {
-    }
+    ) {}
 
     /**
      * 检查是否启用异步发送
@@ -156,7 +157,7 @@ class SMTPMailerService
         $smtpConfig = $this->smtpConfigRepository->find($configId);
 
         if (null === $smtpConfig) {
-            throw new \InvalidArgumentException('SMTP配置不存在: ' . $configId);
+            throw new SMTPConfigNotFoundException($configId);
         }
 
         // 创建邮件任务
@@ -293,7 +294,7 @@ class SMTPMailerService
         $mailTask = $this->mailTaskRepository->find($mailTaskId);
 
         if (null === $mailTask) {
-            throw new \InvalidArgumentException('邮件任务不存在: ' . $mailTaskId);
+            throw new MailTaskNotFoundException($mailTaskId);
         }
 
         // 重置状态

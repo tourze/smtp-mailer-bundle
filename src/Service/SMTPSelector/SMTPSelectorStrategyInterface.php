@@ -8,7 +8,7 @@ use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 /**
  * SMTP选择策略接口
  */
-#[AutoconfigureTag('smtp_mailer.selector_strategy')]
+#[AutoconfigureTag(name: 'smtp_mailer.selector_strategy')]
 interface SMTPSelectorStrategyInterface
 {
     /**

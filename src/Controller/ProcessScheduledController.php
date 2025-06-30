@@ -13,7 +13,7 @@ use Tourze\SMTPMailerBundle\Service\SMTPMailerService;
  */
 class ProcessScheduledController extends AbstractController
 {
-    #[Route('/admin/process-scheduled', name: 'smtp_mailer_process_scheduled')]
+    #[Route(path: '/admin/process-scheduled', name: 'smtp_mailer_process_scheduled')]
     public function __invoke(Request $request, SMTPMailerService $mailerService): Response
     {
         $count = $mailerService->processScheduledTasks();

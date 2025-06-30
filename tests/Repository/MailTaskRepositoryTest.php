@@ -227,7 +227,7 @@ class MailTaskRepositoryTest extends TestCase
 
     /**
      * 测试状态值提供器数据
-     * @dataProvider statusProvider
+     * @dataProvider provideStatusData
      */
     public function testStatusValues(string $status): void
     {
@@ -242,7 +242,7 @@ class MailTaskRepositoryTest extends TestCase
     /**
      * 数据提供器：状态值
      */
-    public static function statusProvider(): array
+    public static function provideStatusData(): array
     {
         return [
             'pending status' => ['pending'],

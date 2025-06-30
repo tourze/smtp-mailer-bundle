@@ -66,7 +66,7 @@ class MailTaskStatusTest extends TestCase
     /**
      * 数据提供器：所有状态和对应的标签
      */
-    public static function statusLabelProvider(): array
+    public static function provideStatusLabelData(): array
     {
         return [
             'pending status' => [MailTaskStatus::PENDING, '等待发送', MailTaskStatus::PRIMARY],
@@ -79,7 +79,7 @@ class MailTaskStatusTest extends TestCase
     /**
      * 使用数据提供器测试状态、标签和徽章的对应关系
      *
-     * @dataProvider statusLabelProvider
+     * @dataProvider provideStatusLabelData
      */
     public function testStatusLabelAndBadgeMapping(MailTaskStatus $status, string $expectedLabel, string $expectedBadge): void
     {

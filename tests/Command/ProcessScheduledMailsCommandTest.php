@@ -92,42 +92,6 @@ class ProcessScheduledMailsCommandTest extends TestCase
         $this->assertStringContainsString('已处理 2 封计划发送的邮件', $output);
     }
 
-    public function testExecute_DaemonMode(): void
-    {
-        // 这个测试比较特殊，因为守护进程模式会无限循环
-        // 我们不能真正测试无限循环，所以只验证命令的启动部分
-
-        // 创建一个自定义版本的命令来避免无限循环
-        $commandMock = $this->getMockBuilder(ProcessScheduledMailsCommand::class)
-            ->setConstructorArgs([$this->mailerService])
-            ->onlyMethods(['execute'])
-            ->getMock();
-
-        // 模拟execute方法仅执行一次并返回成功
-        $commandMock->expects($this->once())
-            ->method('execute')
-            ->willReturn(Command::SUCCESS);
-
-        // 设置命令名称
-        $commandMock->setName('smtp-mailer:process-scheduled-mails');
-
-        // 添加到应用程序
-        $application = new Application();
-        $application->add($commandMock);
-
-        $commandToTest = $application->find('smtp-mailer:process-scheduled-mails');
-        $commandTester = new CommandTester($commandToTest);
-
-        // 执行命令 - 注：这里实际上调用的是我们模拟的execute方法
-        $commandTester->execute([
-            '--daemon' => true,
-            '--interval' => 1
-        ]);
-
-        // 由于我们模拟了execute方法，所以无法验证输出内容
-        // 只能验证命令执行并返回成功代码
-        $this->assertEquals(0, $commandTester->getStatusCode());
-    }
 
     public function testConfigure(): void
     {

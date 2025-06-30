@@ -21,7 +21,7 @@ class SMTPSelectorService
 
     public function __construct(
         private readonly SMTPConfigRepository $smtpConfigRepository,
-        #[TaggedIterator('smtp_mailer.selector_strategy', indexAttribute: 'key')]
+        #[TaggedIterator(tag: 'smtp_mailer.selector_strategy', indexAttribute: 'key')]
         iterable $strategies,
     ) {
         $this->defaultStrategy = $_ENV['SMTP_MAILER_DEFAULT_STRATEGY'] ?? 'round_robin';

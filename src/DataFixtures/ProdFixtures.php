@@ -15,14 +15,6 @@ class ProdFixtures extends Fixture implements FixtureGroupInterface
 {
     public function load(ObjectManager $manager): void
     {
-        // 检查是否已存在SMTP配置，避免重复创建
-        $existingConfigs = $manager->getRepository(SMTPConfig::class)->findAll();
-
-        if (count($existingConfigs) > 0) {
-            // 如果已有配置，跳过创建
-            return;
-        }
-
         // 创建默认的SMTP配置（需要管理员后续配置具体参数）
         $defaultConfig = new SMTPConfig();
         $defaultConfig->setName('默认SMTP配置');

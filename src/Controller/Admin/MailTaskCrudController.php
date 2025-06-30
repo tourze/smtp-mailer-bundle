@@ -36,9 +36,7 @@ class MailTaskCrudController extends AbstractCrudController
         private readonly SMTPSelectorService $selectorService,
         private readonly SMTPMailerService $mailerService,
         private readonly AdminUrlGenerator $adminUrlGenerator,
-    )
-    {
-    }
+    ) {}
 
     public static function getEntityFqcn(): string
     {
@@ -120,7 +118,7 @@ class MailTaskCrudController extends AbstractCrudController
     /**
      * 重新发送邮件
      */
-    #[AdminAction('{entityId}/resend', 'resend')]
+    #[AdminAction(routePath: '{entityId}/resend', routeName: 'resend')]
     public function resendAction(AdminContext $context): RedirectResponse
     {
         /** @var MailTask $mailTask */
