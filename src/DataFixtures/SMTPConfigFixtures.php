@@ -4,20 +4,23 @@ namespace Tourze\SMTPMailerBundle\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\Attribute\When;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 
 /**
  * SMTP配置数据填充
  * 用于创建测试和演示用的SMTP服务器配置
  */
+#[When(env: 'dev')]
+#[When(env: 'test')]
 class SMTPConfigFixtures extends Fixture
 {
     // 定义引用常量，供其他Fixture使用
-    public const GMAIL_SMTP_REFERENCE = 'smtp-config-gmail';
-    public const OUTLOOK_SMTP_REFERENCE = 'smtp-config-outlook';
-    public const QQ_SMTP_REFERENCE = 'smtp-config-qq';
-    public const ALIYUN_SMTP_REFERENCE = 'smtp-config-aliyun';
-    public const TENCENT_SMTP_REFERENCE = 'smtp-config-tencent';
+    public const GMAIL_SMTP_REFERENCE = 'gmail-smtp';
+    public const OUTLOOK_SMTP_REFERENCE = 'outlook-smtp';
+    public const QQ_SMTP_REFERENCE = 'qq-smtp';
+    public const ALIYUN_SMTP_REFERENCE = 'aliyun-smtp';
+    public const TENCENT_SMTP_REFERENCE = 'tencent-smtp';
 
     public function load(ObjectManager $manager): void
     {
@@ -111,7 +114,7 @@ class SMTPConfigFixtures extends Fixture
         $disabledConfig->setName('禁用的SMTP配置');
         $disabledConfig->setHost('smtp.disabled.com');
         $disabledConfig->setPort(587);
-        $disabledConfig->setUsername('disabled@example.com');
+        $disabledConfig->setUsername('disabled@test.unsplash.com');
         $disabledConfig->setPassword('password');
         $disabledConfig->setEncryption('tls');
         $disabledConfig->setTimeout(30);

@@ -3,9 +3,11 @@
 namespace Tourze\SMTPMailerBundle\MessageHandler;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
+use Tourze\SMTPMailerBundle\Entity\MailTask;
 use Tourze\SMTPMailerBundle\Message\SendMailMessage;
 use Tourze\SMTPMailerBundle\Repository\MailTaskRepository;
 use Tourze\SMTPMailerBundle\Service\MailSenderService;
@@ -14,6 +16,7 @@ use Tourze\SMTPMailerBundle\Service\MailSenderService;
  * 处理异步邮件发送消息
  */
 #[AsMessageHandler]
+#[WithMonologChannel(channel: 'smtp_mailer')]
 class SendMailMessageHandler
 {
     public function __construct(
@@ -32,7 +35,7 @@ class SendMailMessageHandler
         $mailTaskId = $message->getMailTaskId();
         $mailTask = $this->mailTaskRepository->find($mailTaskId);
 
-        if ($mailTask === null) {
+        if (null === $mailTask) {
             $this->logger->error('邮件任务不存在', ['id' => $mailTaskId]);
             throw new UnrecoverableMessageHandlingException('邮件任务不存在: ' . $mailTaskId);
         }
@@ -41,8 +44,9 @@ class SendMailMessageHandler
         if (!$mailTask->isReadyToSend()) {
             $this->logger->info('邮件任务不处于可发送状态', [
                 'id' => $mailTaskId,
-                'status' => $mailTask->getStatus()
+                'status' => $mailTask->getStatus(),
             ]);
+
             return;
         }
 
@@ -61,7 +65,7 @@ class SendMailMessageHandler
         } catch (\Throwable $e) {
             $this->logger->error('邮件发送异常', [
                 'id' => $mailTaskId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             $mailTask->markAsFailed($e->getMessage());

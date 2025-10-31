@@ -2,277 +2,991 @@
 
 namespace Tourze\SMTPMailerBundle\Tests\Repository;
 
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractRepositoryTestCase;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
 use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 use Tourze\SMTPMailerBundle\Repository\MailTaskRepository;
 
-class MailTaskRepositoryTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(MailTaskRepository::class)]
+#[RunTestsInSeparateProcesses]
+final class MailTaskRepositoryTest extends AbstractRepositoryTestCase
 {
     /**
-     * 测试仓库类存在且继承正确的基类
+     * @var MailTaskRepository
+     * @phpstan-ignore doctrine.noGetRepositoryOutsideService,assign.propertyType
      */
-    public function testRepositoryClassExists(): void
+    private MailTaskRepository $repository;
+
+    protected function onSetUp(): void
     {
-        $this->assertTrue(class_exists(MailTaskRepository::class));
-        
-        $reflection = new \ReflectionClass(MailTaskRepository::class);
-        $this->assertTrue($reflection->isSubclassOf(ServiceEntityRepository::class));
+        // 清理数据库
+        self::cleanDatabase();
+
+        // 初始化repository
+        // @phpstan-ignore doctrine.noGetRepositoryOutsideService,assign.propertyType
+        $this->repository = self::getEntityManager()->getRepository(MailTask::class);
     }
 
-    /**
-     * 测试仓库的所有自定义方法都存在
-     */
-    public function testCustomMethodsExist(): void
+    public function testRepositoryInitialization(): void
     {
-        $reflection = new \ReflectionClass(MailTaskRepository::class);
-        
-        $methods = [
-            'findPendingTasks',
-            'findScheduledTasks', 
-            'findByStatus',
-            'findByDateRange',
-            'findBySmtpConfig'
-        ];
-        
-        foreach ($methods as $method) {
-            $this->assertTrue($reflection->hasMethod($method), "Method {$method} should exist");
-        }
+        // 验证repository已在onSetUp中正确初始化
+        $this->assertInstanceOf(MailTaskRepository::class, $this->repository);
     }
 
-    /**
-     * 测试findPendingTasks方法签名
-     */
-    public function testFindPendingTasksMethodSignature(): void
+    public function testFindPendingTasks(): void
     {
-        $reflection = new \ReflectionClass(MailTaskRepository::class);
-        $method = $reflection->getMethod('findPendingTasks');
-        
-        // 测试参数数量
-        $this->assertCount(0, $method->getParameters());
-        
-        // 测试返回类型
-        $this->assertTrue($method->hasReturnType());
-        $returnType = $method->getReturnType();
-        $this->assertEquals('array', (string) $returnType);
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $pendingTask = new MailTask();
+        $pendingTask->setFromEmail('test@example.com');
+        $pendingTask->setToEmail('recipient@example.com');
+        $pendingTask->setSubject('Test Subject');
+        $pendingTask->setBody('Test Body');
+        $pendingTask->setStatus(MailTaskStatus::PENDING);
+        self::getEntityManager()->persist($pendingTask);
+
+        $sentTask = new MailTask();
+        $sentTask->setFromEmail('test@example.com');
+        $sentTask->setToEmail('recipient@example.com');
+        $sentTask->setSubject('Test Subject 2');
+        $sentTask->setBody('Test Body 2');
+        $sentTask->setStatus(MailTaskStatus::SENT);
+        self::getEntityManager()->persist($sentTask);
+
+        self::getEntityManager()->flush();
+
+        // 执行查询
+        $pendingTasks = $this->getRepository()->findPendingTasks();
+
+        // 验证结果
+        $this->assertCount(1, $pendingTasks);
+        $this->assertEquals(MailTaskStatus::PENDING, $pendingTasks[0]->getStatus());
     }
 
-    /**
-     * 测试findScheduledTasks方法签名
-     */
-    public function testFindScheduledTasksMethodSignature(): void
+    public function testFindByStatus(): void
     {
-        $reflection = new \ReflectionClass(MailTaskRepository::class);
-        $method = $reflection->getMethod('findScheduledTasks');
-        
-        // 测试参数数量
-        $this->assertCount(0, $method->getParameters());
-        
-        // 测试返回类型
-        $this->assertTrue($method->hasReturnType());
-        $returnType = $method->getReturnType();
-        $this->assertEquals('array', (string) $returnType);
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 执行查询
+        $pendingTasks = $this->getRepository()->findByStatus(MailTaskStatus::PENDING->value);
+        $sentTasks = $this->getRepository()->findByStatus(MailTaskStatus::SENT->value);
+
+        // 验证结果
+        $this->assertCount(1, $pendingTasks);
+        $this->assertCount(1, $sentTasks);
+        $this->assertEquals(MailTaskStatus::PENDING, $pendingTasks[0]->getStatus());
+        $this->assertEquals(MailTaskStatus::SENT, $sentTasks[0]->getStatus());
     }
 
-    /**
-     * 测试findByStatus方法签名
-     */
-    public function testFindByStatusMethodSignature(): void
+    public function testFindByDateRange(): void
     {
-        $reflection = new \ReflectionClass(MailTaskRepository::class);
-        $method = $reflection->getMethod('findByStatus');
-        
-        // 测试参数数量和类型
-        $parameters = $method->getParameters();
-        $this->assertCount(1, $parameters);
-        $this->assertEquals('status', $parameters[0]->getName());
-        
-        // 测试返回类型
-        $this->assertTrue($method->hasReturnType());
-        $returnType = $method->getReturnType();
-        $this->assertEquals('array', (string) $returnType);
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $startDate = new \DateTimeImmutable('2024-01-01');
+        $endDate = new \DateTimeImmutable('2024-01-31');
+
+        $taskInRange = new MailTask();
+        $taskInRange->setFromEmail('test@example.com');
+        $taskInRange->setToEmail('recipient@example.com');
+        $taskInRange->setSubject('Test Subject');
+        $taskInRange->setBody('Test Body');
+        $taskInRange->setStatus(MailTaskStatus::PENDING);
+        $taskInRange->setCreateTime(new \DateTimeImmutable('2024-01-15'));
+        self::getEntityManager()->persist($taskInRange);
+
+        $taskOutOfRange = new MailTask();
+        $taskOutOfRange->setFromEmail('test2@example.com');
+        $taskOutOfRange->setToEmail('recipient@example.com');
+        $taskOutOfRange->setSubject('Test Subject 2');
+        $taskOutOfRange->setBody('Test Body 2');
+        $taskOutOfRange->setStatus(MailTaskStatus::PENDING);
+        $taskOutOfRange->setCreateTime(new \DateTimeImmutable('2023-12-15'));
+        self::getEntityManager()->persist($taskOutOfRange);
+
+        self::getEntityManager()->flush();
+
+        // 执行查询
+        $tasksInRange = $this->getRepository()->findByDateRange($startDate, $endDate);
+
+        // 验证结果
+        $this->assertCount(1, $tasksInRange);
+        $createTime = $tasksInRange[0]->getCreateTime();
+        $this->assertNotNull($createTime);
+        $this->assertEquals('2024-01-15', $createTime->format('Y-m-d'));
     }
 
-    /**
-     * 测试findByDateRange方法签名
-     */
-    public function testFindByDateRangeMethodSignature(): void
+    public function testSave(): void
     {
-        $reflection = new \ReflectionClass(MailTaskRepository::class);
-        $method = $reflection->getMethod('findByDateRange');
-        
-        // 测试参数数量和类型
-        $parameters = $method->getParameters();
-        $this->assertCount(2, $parameters);
-        $this->assertEquals('startDate', $parameters[0]->getName());
-        $this->assertEquals('endDate', $parameters[1]->getName());
-        
-        // 测试参数类型
-        $this->assertTrue($parameters[0]->hasType());
-        $this->assertTrue($parameters[1]->hasType());
-        
-        // 测试返回类型
-        $this->assertTrue($method->hasReturnType());
-        $returnType = $method->getReturnType();
-        $this->assertEquals('array', (string) $returnType);
-    }
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
 
-    /**
-     * 测试findBySmtpConfig方法签名
-     */
-    public function testFindBySmtpConfigMethodSignature(): void
-    {
-        $reflection = new \ReflectionClass(MailTaskRepository::class);
-        $method = $reflection->getMethod('findBySmtpConfig');
-        
-        // 测试参数数量和类型
-        $parameters = $method->getParameters();
-        $this->assertCount(1, $parameters);
-        $this->assertEquals('smtpConfigId', $parameters[0]->getName());
-        
-        // 测试返回类型
-        $this->assertTrue($method->hasReturnType());
-        $returnType = $method->getReturnType();
-        $this->assertEquals('array', (string) $returnType);
-    }
-
-    /**
-     * 测试继承的标准方法存在
-     */
-    public function testInheritedMethods(): void
-    {
-        $reflection = new \ReflectionClass(MailTaskRepository::class);
-        
-        $standardMethods = ['find', 'findOneBy', 'findAll', 'findBy'];
-        
-        foreach ($standardMethods as $method) {
-            $this->assertTrue($reflection->hasMethod($method), "Method {$method} should be inherited");
-        }
-    }
-
-    /**
-     * 测试实体类关联
-     */
-    public function testEntityClass(): void
-    {
-        // 通过反射检查仓库是否与MailTask实体关联
-        $reflection = new \ReflectionClass(MailTaskRepository::class);
-        $constructor = $reflection->getConstructor();
-        
-        $this->assertNotNull($constructor);
-        $this->assertTrue($reflection->isSubclassOf(ServiceEntityRepository::class));
-    }
-
-    /**
-     * 测试MailTask实体相关的枚举值
-     */
-    public function testMailTaskStatusEnumValues(): void
-    {
-        // 确保测试中使用的状态值在枚举中存在
-        $reflection = new \ReflectionClass(MailTaskStatus::class);
-        $this->assertTrue($reflection->isEnum());
-        
-        $cases = MailTaskStatus::cases();
-        $caseValues = array_map(fn($case) => $case->value, $cases);
-        
-        $expectedStatuses = ['pending', 'processing', 'sent', 'failed'];
-        foreach ($expectedStatuses as $status) {
-            $this->assertContains($status, $caseValues, "Status {$status} should exist in enum");
-        }
-    }
-
-    /**
-     * 测试可以创建MailTask实体
-     */
-    public function testCanCreateMailTaskEntity(): void
-    {
         $task = new MailTask();
-        $this->assertInstanceOf(MailTask::class, $task);
-        
-        // 测试基本属性设置
         $task->setFromEmail('test@example.com');
         $task->setToEmail('recipient@example.com');
         $task->setSubject('Test Subject');
         $task->setBody('Test Body');
         $task->setStatus(MailTaskStatus::PENDING);
-        
-        $this->assertEquals('test@example.com', $task->getFromEmail());
-        $this->assertEquals('recipient@example.com', $task->getToEmail());
-        $this->assertEquals('Test Subject', $task->getSubject());
-        $this->assertEquals('Test Body', $task->getBody());
-        $this->assertEquals(MailTaskStatus::PENDING, $task->getStatus());
+
+        // 测试保存
+        $this->getRepository()->save($task);
+
+        // 验证实体已保存
+        $this->assertNotNull($task->getId());
+
+        // 清除EntityManager缓存，从数据库重新查询
+        self::getEntityManager()->clear();
+        $savedTask = $this->getRepository()->find($task->getId());
+
+        $this->assertNotNull($savedTask);
+        $this->assertEquals('test@example.com', $savedTask->getFromEmail());
     }
 
-    /**
-     * 测试方法可见性
-     */
-    public function testMethodVisibility(): void
+    public function testRemove(): void
     {
-        $reflection = new \ReflectionClass(MailTaskRepository::class);
-        
-        $publicMethods = [
-            'findPendingTasks',
-            'findScheduledTasks',
-            'findByStatus', 
-            'findByDateRange',
-            'findBySmtpConfig'
-        ];
-        
-        foreach ($publicMethods as $methodName) {
-            $method = $reflection->getMethod($methodName);
-            $this->assertTrue($method->isPublic(), "Method {$methodName} should be public");
-        }
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        $task = new MailTask();
+        $task->setFromEmail('test@example.com');
+        $task->setToEmail('recipient@example.com');
+        $task->setSubject('Test Subject');
+        $task->setBody('Test Body');
+        $task->setStatus(MailTaskStatus::PENDING);
+
+        self::getEntityManager()->persist($task);
+        self::getEntityManager()->flush();
+
+        $taskId = $task->getId();
+
+        // 测试删除
+        $this->getRepository()->remove($task);
+
+        // 验证实体已删除
+        $this->assertNull($this->getRepository()->find($taskId));
     }
 
-    /**
-     * 测试状态值提供器数据
-     * @dataProvider provideStatusData
-     */
-    public function testStatusValues(string $status): void
+    public function testFindBySmtpConfig(): void
     {
-        // 验证状态值是有效的字符串
-        $this->assertNotEmpty($status);
-        
-        // 验证状态值在预期范围内
-        $validStatuses = ['pending', 'processing', 'sent', 'failed'];
-        $this->assertContains($status, $validStatuses);
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::PENDING);
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 执行查询 - 测试不存在的SMTP配置ID
+        $results = $this->getRepository()->findBySmtpConfig(999);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(0, $results);
     }
 
-    /**
-     * 数据提供器：状态值
-     */
-    public static function provideStatusData(): array
+    public function testFindScheduledTasks(): void
     {
-        return [
-            'pending status' => ['pending'],
-            'processing status' => ['processing'], 
-            'sent status' => ['sent'],
-            'failed status' => ['failed'],
-        ];
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $pastTime = new \DateTimeImmutable('-1 hour');
+        $futureTime = new \DateTimeImmutable('+1 hour');
+
+        $scheduledTask = new MailTask();
+        $scheduledTask->setFromEmail('scheduled@example.com');
+        $scheduledTask->setToEmail('recipient@example.com');
+        $scheduledTask->setSubject('Scheduled Subject');
+        $scheduledTask->setBody('Scheduled Body');
+        $scheduledTask->setStatus(MailTaskStatus::PENDING);
+        $scheduledTask->setScheduledTime($pastTime);
+        self::getEntityManager()->persist($scheduledTask);
+
+        $futureTask = new MailTask();
+        $futureTask->setFromEmail('future@example.com');
+        $futureTask->setToEmail('recipient@example.com');
+        $futureTask->setSubject('Future Subject');
+        $futureTask->setBody('Future Body');
+        $futureTask->setStatus(MailTaskStatus::PENDING);
+        $futureTask->setScheduledTime($futureTime);
+        self::getEntityManager()->persist($futureTask);
+
+        $immediateTask = new MailTask();
+        $immediateTask->setFromEmail('immediate@example.com');
+        $immediateTask->setToEmail('recipient@example.com');
+        $immediateTask->setSubject('Immediate Subject');
+        $immediateTask->setBody('Immediate Body');
+        $immediateTask->setStatus(MailTaskStatus::PENDING);
+        self::getEntityManager()->persist($immediateTask);
+
+        self::getEntityManager()->flush();
+
+        // 执行查询
+        $results = $this->getRepository()->findScheduledTasks();
+
+        // 验证结果 - 应该只返回过去时间的计划任务
+        $this->assertIsArray($results);
+        $this->assertCount(1, $results);
+        $this->assertEquals('scheduled@example.com', $results[0]->getFromEmail());
     }
 
-    /**
-     * 测试日期范围参数类型
-     */
-    public function testDateRangeParameterTypes(): void
+    public function testCountAssociationQueries(): void
     {
-        $startDate = new \DateTime('2024-01-01');
-        $endDate = new \DateTime('2024-01-31');
-        
-        $this->assertInstanceOf(\DateTime::class, $startDate);
-        $this->assertInstanceOf(\DateTime::class, $endDate);
-        $this->assertLessThan($endDate, $startDate);
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task = new MailTask();
+        $task->setFromEmail('test@example.com');
+        $task->setToEmail('recipient@example.com');
+        $task->setSubject('Test Subject');
+        $task->setBody('Test Body');
+        $task->setStatus(MailTaskStatus::PENDING);
+        self::getEntityManager()->persist($task);
+
+        self::getEntityManager()->flush();
+
+        // 测试关联查询 - smtpConfig为null的记录数量
+        $count = $this->getRepository()->count(['smtpConfig' => null]);
+
+        // 验证结果
+        $this->assertEquals(1, $count);
     }
 
-    /**
-     * 测试SMTP配置ID参数类型
-     */
-    public function testSmtpConfigIdParameterType(): void
+    public function testFindByAssociationQueries(): void
     {
-        $smtpConfigId = 123;
-        
-        // $smtpConfigId 已经是 int 类型，移除冗余检查
-        $this->assertGreaterThan(0, $smtpConfigId);
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试关联查询 - 查找smtpConfig为null的记录
+        $results = $this->getRepository()->findBy(['smtpConfig' => null]);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(2, $results);
     }
-} 
+
+    public function testFindByNullableFields(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setFromName('Test Name');
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // fromName 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 IS NULL 查询
+        $results = $this->getRepository()->findBy(['fromName' => null]);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(1, $results);
+        $this->assertEquals('test2@example.com', $results[0]->getFromEmail());
+    }
+
+    public function testCountNullableFields(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setFromName('Test Name');
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // fromName 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 count IS NULL 查询
+        $count = $this->getRepository()->count(['fromName' => null]);
+
+        // 验证结果
+        $this->assertEquals(1, $count);
+    }
+
+    public function testFindByWithMoreNullableFields(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setToName('Test To Name');
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // toName 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 IS NULL 查询 - toName
+        $results = $this->getRepository()->findBy(['toName' => null]);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(1, $results);
+        $this->assertEquals('test2@example.com', $results[0]->getFromEmail());
+    }
+
+    public function testCountWithMoreNullableFields(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setToName('Test To Name');
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // toName 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 count IS NULL 查询 - toName
+        $count = $this->getRepository()->count(['toName' => null]);
+
+        // 验证结果
+        $this->assertEquals(1, $count);
+    }
+
+    public function testFindByWithScheduledTimeNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setScheduledTime(new \DateTimeImmutable('+1 hour'));
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // scheduledTime 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 IS NULL 查询 - scheduledTime
+        $results = $this->getRepository()->findBy(['scheduledTime' => null]);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(1, $results);
+        $this->assertEquals('test2@example.com', $results[0]->getFromEmail());
+    }
+
+    public function testCountWithScheduledTimeNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setScheduledTime(new \DateTimeImmutable('+1 hour'));
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // scheduledTime 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 count IS NULL 查询 - scheduledTime
+        $count = $this->getRepository()->count(['scheduledTime' => null]);
+
+        // 验证结果
+        $this->assertEquals(1, $count);
+    }
+
+    public function testFindByWithCcNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setCc(['cc@example.com']);
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // cc 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 IS NULL 查询 - cc
+        $results = $this->getRepository()->findBy(['cc' => null]);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(1, $results);
+        $this->assertEquals('test2@example.com', $results[0]->getFromEmail());
+    }
+
+    public function testCountWithCcNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setCc(['cc@example.com']);
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // cc 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 count IS NULL 查询 - cc
+        $count = $this->getRepository()->count(['cc' => null]);
+
+        // 验证结果
+        $this->assertEquals(1, $count);
+    }
+
+    public function testFindByWithBccNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setBcc(['bcc@example.com']);
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // bcc 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 IS NULL 查询 - bcc
+        $results = $this->getRepository()->findBy(['bcc' => null]);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(1, $results);
+        $this->assertEquals('test2@example.com', $results[0]->getFromEmail());
+    }
+
+    public function testCountWithBccNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setBcc(['bcc@example.com']);
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // bcc 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 count IS NULL 查询 - bcc
+        $count = $this->getRepository()->count(['bcc' => null]);
+
+        // 验证结果
+        $this->assertEquals(1, $count);
+    }
+
+    public function testFindByWithAttachmentsNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setAttachments([['filename' => 'file1.txt', 'content_type' => 'text/plain']]);
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // attachments 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 IS NULL 查询 - attachments
+        $results = $this->getRepository()->findBy(['attachments' => null]);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(1, $results);
+        $this->assertEquals('test2@example.com', $results[0]->getFromEmail());
+    }
+
+    public function testCountWithAttachmentsNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setAttachments([['filename' => 'file1.txt', 'content_type' => 'text/plain']]);
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // attachments 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 count IS NULL 查询 - attachments
+        $count = $this->getRepository()->count(['attachments' => null]);
+
+        // 验证结果
+        $this->assertEquals(1, $count);
+    }
+
+    public function testFindByWithStatusMessageNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setStatusMessage('Some status message');
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // statusMessage 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 IS NULL 查询 - statusMessage
+        $results = $this->getRepository()->findBy(['statusMessage' => null]);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(1, $results);
+        $this->assertEquals('test2@example.com', $results[0]->getFromEmail());
+    }
+
+    public function testCountWithStatusMessageNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setStatusMessage('Some status message');
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // statusMessage 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 count IS NULL 查询 - statusMessage
+        $count = $this->getRepository()->count(['statusMessage' => null]);
+
+        // 验证结果
+        $this->assertEquals(1, $count);
+    }
+
+    public function testFindByWithSelectorStrategyNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setSelectorStrategy('round_robin');
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // selectorStrategy 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 IS NULL 查询 - selectorStrategy
+        $results = $this->getRepository()->findBy(['selectorStrategy' => null]);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(1, $results);
+        $this->assertEquals('test2@example.com', $results[0]->getFromEmail());
+    }
+
+    public function testCountWithSelectorStrategyNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        $task1->setSelectorStrategy('round_robin');
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::SENT);
+        // selectorStrategy 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 count IS NULL 查询 - selectorStrategy
+        $count = $this->getRepository()->count(['selectorStrategy' => null]);
+
+        // 验证结果
+        $this->assertEquals(1, $count);
+    }
+
+    public function testFindByWithSentTimeNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::SENT);
+        $task1->setSentTime(new \DateTimeImmutable());
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::PENDING);
+        // sentTime 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 IS NULL 查询 - sentTime
+        $results = $this->getRepository()->findBy(['sentTime' => null]);
+
+        // 验证结果
+        $this->assertIsArray($results);
+        $this->assertCount(1, $results);
+        $this->assertEquals('test2@example.com', $results[0]->getFromEmail());
+    }
+
+    public function testCountWithSentTimeNull(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('test1@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::SENT);
+        $task1->setSentTime(new \DateTimeImmutable());
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('test2@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::PENDING);
+        // sentTime 保持 null
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 count IS NULL 查询 - sentTime
+        $count = $this->getRepository()->count(['sentTime' => null]);
+
+        // 验证结果
+        $this->assertEquals(1, $count);
+    }
+
+    public function testFindOneByWithSortingLogic(): void
+    {
+        // 确保每个测试开始时数据库是干净的
+        self::getEntityManager()->createQuery('DELETE FROM ' . MailTask::class)->execute();
+
+        // 创建测试数据
+        $task1 = new MailTask();
+        $task1->setFromEmail('a@example.com');
+        $task1->setToEmail('recipient1@example.com');
+        $task1->setSubject('Test Subject 1');
+        $task1->setBody('Test Body 1');
+        $task1->setStatus(MailTaskStatus::PENDING);
+        self::getEntityManager()->persist($task1);
+
+        $task2 = new MailTask();
+        $task2->setFromEmail('z@example.com');
+        $task2->setToEmail('recipient2@example.com');
+        $task2->setSubject('Test Subject 2');
+        $task2->setBody('Test Body 2');
+        $task2->setStatus(MailTaskStatus::PENDING);
+        self::getEntityManager()->persist($task2);
+
+        self::getEntityManager()->flush();
+
+        // 测试 findOneBy 排序逻辑
+        $result = $this->getRepository()->findOneBy(['status' => MailTaskStatus::PENDING], ['fromEmail' => 'ASC']);
+        $this->assertInstanceOf(MailTask::class, $result);
+        $this->assertEquals('a@example.com', $result->getFromEmail());
+
+        $result = $this->getRepository()->findOneBy(['status' => MailTaskStatus::PENDING], ['fromEmail' => 'DESC']);
+        $this->assertInstanceOf(MailTask::class, $result);
+        $this->assertEquals('z@example.com', $result->getFromEmail());
+    }
+
+    protected function createNewEntity(): object
+    {
+        $entity = new MailTask();
+        $entity->setFromEmail('test' . uniqid() . '@example.com');
+        $entity->setToEmail('recipient@example.com');
+        $entity->setSubject('Test Subject ' . uniqid());
+        $entity->setBody('Test Body ' . uniqid());
+        $entity->setStatus(MailTaskStatus::PENDING);
+
+        return $entity;
+    }
+
+    protected function getRepository(): MailTaskRepository
+    {
+        return $this->repository;
+    }
+}

@@ -2,16 +2,23 @@
 
 namespace Tourze\SMTPMailerBundle\Tests\Service\SMTPSelector;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 use Tourze\SMTPMailerBundle\Service\SMTPSelector\PriorityStrategy;
 
-class PriorityStrategyTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(PriorityStrategy::class)]
+final class PriorityStrategyTest extends TestCase
 {
     private PriorityStrategy $strategy;
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->strategy = new PriorityStrategy();
     }
 
@@ -20,13 +27,13 @@ class PriorityStrategyTest extends TestCase
         $this->assertEquals('priority', $this->strategy->getName());
     }
 
-    public function testSelect_EmptyConfigs(): void
+    public function testSelectEmptyConfigs(): void
     {
         $result = $this->strategy->select([]);
         $this->assertNull($result);
     }
 
-    public function testSelect_SingleConfig(): void
+    public function testSelectSingleConfig(): void
     {
         $config = new SMTPConfig();
         $config->setName('Config 1');
@@ -36,7 +43,7 @@ class PriorityStrategyTest extends TestCase
         $this->assertSame($config, $result);
     }
 
-    public function testSelect_MultipleConfigs_HighestPrioritySelected(): void
+    public function testSelectMultipleConfigsHighestPrioritySelected(): void
     {
         // 创建优先级不同的多个配置
         $config1 = new SMTPConfig();
@@ -59,12 +66,17 @@ class PriorityStrategyTest extends TestCase
         $this->assertSame($config2, $result);
     }
 
-    public function testSelect_MultipleConfigs_EqualPriorities(): void
+    public function testSelectMultipleConfigsEqualPriorities(): void
     {
         // 由于具有相同优先级的配置会使用随机策略选择，这个测试可能不稳定
         // 我们可以使用 mock 来控制随机性
+        // 使用具体类 RandomStrategy 的 Mock 是必要的，因为：
+        // 1) RandomStrategy 没有对应的接口，是具体的策略实现类
+        // 2) 需要模拟随机选择行为以确保测试的稳定性和可预测性
+        // 3) 这是测试相同优先级情况下的回退逻辑的唯一可行方案
         $randomStrategy = $this->getMockBuilder('Tourze\SMTPMailerBundle\Service\SMTPSelector\RandomStrategy')
-            ->getMock();
+            ->getMock()
+        ;
 
         // 创建反射类来替换 PriorityStrategy 内部的 RandomStrategy 实例
         $reflectionClass = new \ReflectionClass(PriorityStrategy::class);
@@ -90,7 +102,7 @@ class PriorityStrategyTest extends TestCase
         $this->assertContains($result, $configs);
     }
 
-    public function testSelect_MixedPriorities(): void
+    public function testSelectMixedPriorities(): void
     {
         // 创建混合优先级的配置
         $config1 = new SMTPConfig();
@@ -121,7 +133,7 @@ class PriorityStrategyTest extends TestCase
         );
     }
 
-    public function testSelect_NegativePriorities(): void
+    public function testSelectNegativePriorities(): void
     {
         // 创建包含负优先级的配置
         $config1 = new SMTPConfig();
@@ -144,7 +156,7 @@ class PriorityStrategyTest extends TestCase
         $this->assertSame($config3, $result);
     }
 
-    public function testSelect_AllNegativePriorities(): void
+    public function testSelectAllNegativePriorities(): void
     {
         // 创建所有都是负优先级的配置
         $config1 = new SMTPConfig();

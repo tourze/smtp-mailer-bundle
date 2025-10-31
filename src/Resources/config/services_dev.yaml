@@ -1,0 +1,13 @@
+services:
+  # DataFixtures for development environment
+  Tourze\SMTPMailerBundle\DataFixtures\DevFixtures:
+    tags: ['doctrine.fixture.orm']
+
+  Tourze\SMTPMailerBundle\DataFixtures\MailTaskFixtures:
+    tags: ['doctrine.fixture.orm']
+
+  Tourze\SMTPMailerBundle\DataFixtures\SMTPConfigFixtures:
+    tags: ['doctrine.fixture.orm']
+
+  Tourze\SMTPMailerBundle\DataFixtures\ProdFixtures:
+    tags: ['doctrine.fixture.orm']

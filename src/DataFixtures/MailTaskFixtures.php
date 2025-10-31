@@ -5,6 +5,7 @@ namespace Tourze\SMTPMailerBundle\DataFixtures;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\Attribute\When;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
@@ -13,6 +14,8 @@ use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
  * 邮件任务数据填充
  * 用于创建测试和演示用的邮件发送任务
  */
+#[When(env: 'dev')]
+#[When(env: 'test')]
 class MailTaskFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
@@ -24,9 +27,9 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
 
         // 创建已发送的邮件任务
         $sentTask = new MailTask();
-        $sentTask->setFromEmail('noreply@example.com');
+        $sentTask->setFromEmail('noreply@test.unsplash.com');
         $sentTask->setFromName('系统通知');
-        $sentTask->setToEmail('user@example.com');
+        $sentTask->setToEmail('user@test.unsplash.com');
         $sentTask->setToName('张三');
         $sentTask->setSubject('欢迎注册我们的服务');
         $sentTask->setBody($this->getWelcomeEmailBody());
@@ -39,14 +42,14 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
 
         // 创建待发送的邮件任务
         $pendingTask = new MailTask();
-        $pendingTask->setFromEmail('marketing@example.com');
+        $pendingTask->setFromEmail('marketing@test.unsplash.com');
         $pendingTask->setFromName('营销团队');
-        $pendingTask->setToEmail('customer@example.com');
+        $pendingTask->setToEmail('customer@test.unsplash.com');
         $pendingTask->setToName('李四');
         $pendingTask->setSubject('新产品发布通知');
         $pendingTask->setBody($this->getProductLaunchEmailBody());
         $pendingTask->setIsHtml(true);
-        $pendingTask->setCc(['manager@example.com', 'sales@example.com']);
+        $pendingTask->setCc(['manager@test.unsplash.com', 'sales@test.unsplash.com']);
         $pendingTask->setSelectorStrategy('priority');
         $pendingTask->setStatus(MailTaskStatus::PENDING);
 
@@ -54,9 +57,9 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
 
         // 创建计划发送的邮件任务
         $scheduledTask = new MailTask();
-        $scheduledTask->setFromEmail('newsletter@example.com');
+        $scheduledTask->setFromEmail('newsletter@test.unsplash.com');
         $scheduledTask->setFromName('新闻通讯');
-        $scheduledTask->setToEmail('subscriber@example.com');
+        $scheduledTask->setToEmail('subscriber@test.unsplash.com');
         $scheduledTask->setToName('王五');
         $scheduledTask->setSubject('每周新闻摘要');
         $scheduledTask->setBody($this->getNewsletterEmailBody());
@@ -69,7 +72,7 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
 
         // 创建失败的邮件任务
         $failedTask = new MailTask();
-        $failedTask->setFromEmail('support@example.com');
+        $failedTask->setFromEmail('support@test.unsplash.com');
         $failedTask->setFromName('技术支持');
         $failedTask->setToEmail('invalid-email@nonexistent-domain.com');
         $failedTask->setToName('测试用户');
@@ -84,9 +87,9 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
 
         // 创建带附件的邮件任务
         $attachmentTask = new MailTask();
-        $attachmentTask->setFromEmail('hr@example.com');
+        $attachmentTask->setFromEmail('hr@test.unsplash.com');
         $attachmentTask->setFromName('人力资源部');
-        $attachmentTask->setToEmail('employee@example.com');
+        $attachmentTask->setToEmail('employee@test.unsplash.com');
         $attachmentTask->setToName('赵六');
         $attachmentTask->setSubject('员工手册和合同文件');
         $attachmentTask->setBody($this->getHrEmailBody());
@@ -95,13 +98,13 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
             [
                 'name' => '员工手册.pdf',
                 'mime' => 'application/pdf',
-                'data' => base64_encode('这是模拟的PDF文件内容')
+                'data' => base64_encode('这是模拟的PDF文件内容'),
             ],
             [
                 'name' => '劳动合同.docx',
                 'mime' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'data' => base64_encode('这是模拟的Word文档内容')
-            ]
+                'data' => base64_encode('这是模拟的Word文档内容'),
+            ],
         ]);
         $attachmentTask->setSelectorStrategy('weighted');
         $attachmentTask->setStatus(MailTaskStatus::PENDING);
@@ -110,9 +113,9 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
 
         // 创建处理中的邮件任务
         $processingTask = new MailTask();
-        $processingTask->setFromEmail('system@example.com');
+        $processingTask->setFromEmail('system@test.unsplash.com');
         $processingTask->setFromName('系统自动化');
-        $processingTask->setToEmail('admin@example.com');
+        $processingTask->setToEmail('admin@test.unsplash.com');
         $processingTask->setToName('管理员');
         $processingTask->setSubject('系统备份完成通知');
         $processingTask->setBody('系统备份已于今日凌晨完成，备份文件大小：2.5GB，备份状态：成功。');
@@ -124,17 +127,17 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
 
         // 创建群发邮件任务
         $massEmailTask = new MailTask();
-        $massEmailTask->setFromEmail('promotion@example.com');
+        $massEmailTask->setFromEmail('promotion@test.unsplash.com');
         $massEmailTask->setFromName('促销活动');
-        $massEmailTask->setToEmail('vip@example.com');
+        $massEmailTask->setToEmail('vip@test.unsplash.com');
         $massEmailTask->setToName('VIP客户');
         $massEmailTask->setSubject('🎉 双十一特惠活动开始啦！');
         $massEmailTask->setBody($this->getPromotionEmailBody());
         $massEmailTask->setIsHtml(true);
         $massEmailTask->setBcc([
-            'customer1@example.com',
-            'customer2@example.com',
-            'customer3@example.com'
+            'customer1@test.unsplash.com',
+            'customer2@test.unsplash.com',
+            'customer3@test.unsplash.com',
         ]);
         $massEmailTask->setSelectorStrategy('random');
         $massEmailTask->setStatus(MailTaskStatus::PENDING);
@@ -205,7 +208,7 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
                 </div>
                 <p>现在购买享受早鸟优惠，限时8折！</p>
                 <p style="text-align: center; margin: 30px 0;">
-                    <a href="https://example.com/new-product" style="background: #3498db; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">立即查看</a>
+                    <a href="https://unsplash.com/new-product" style="background: #3498db; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">立即查看</a>
                 </p>
             </div>
         </body>
@@ -241,7 +244,7 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
                 </div>
                 
                 <p style="margin-top: 30px; font-size: 12px; color: #7f8c8d;">
-                    如不想继续接收此邮件，请<a href="https://example.com/unsubscribe">点击退订</a>
+                    如不想继续接收此邮件，请<a href="https://unsplash.com/unsubscribe">点击退订</a>
                 </p>
             </div>
         </body>
@@ -268,7 +271,7 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
                 <ul>
                     <li>请在收到邮件后3个工作日内完成文件审阅</li>
                     <li>如有疑问，请及时联系HR部门</li>
-                    <li>签署后的合同请扫描发送至hr@example.com</li>
+                    <li>签署后的合同请扫描发送至hr@test.unsplash.com</li>
                 </ul>
                 <p>感谢您的配合！</p>
                 <p style="margin-top: 30px;">
@@ -304,7 +307,7 @@ class MailTaskFixtures extends Fixture implements DependentFixtureInterface
                     
                     <div style="text-align: center; margin: 30px 0;">
                         <p style="font-size: 18px; color: #e74c3c; font-weight: bold;">活动时间：11月11日 00:00 - 23:59</p>
-                        <a href="https://example.com/sale" style="background: #e74c3c; color: white; padding: 15px 40px; text-decoration: none; border-radius: 25px; display: inline-block; font-size: 18px; font-weight: bold;">立即抢购</a>
+                        <a href="https://unsplash.com/sale" style="background: #e74c3c; color: white; padding: 15px 40px; text-decoration: none; border-radius: 25px; display: inline-block; font-size: 18px; font-weight: bold;">立即抢购</a>
                     </div>
                     
                     <p style="text-align: center; color: #7f8c8d; font-size: 12px;">

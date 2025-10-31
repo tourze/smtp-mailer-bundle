@@ -4,16 +4,15 @@ namespace Tourze\SMTPMailerBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 
 /**
  * SMTP配置仓库
  *
- * @method SMTPConfig|null find($id, $lockMode = null, $lockVersion = null)
- * @method SMTPConfig|null findOneBy(array $criteria, array $orderBy = null)
- * @method SMTPConfig[] findAll()
- * @method SMTPConfig[] findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @extends ServiceEntityRepository<SMTPConfig>
  */
+#[AsRepository(entityClass: SMTPConfig::class)]
 class SMTPConfigRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -23,41 +22,56 @@ class SMTPConfigRepository extends ServiceEntityRepository
 
     /**
      * 获取所有启用的SMTP配置
+     *
+     * @return SMTPConfig[]
      */
     public function findAllEnabled(): array
     {
-        return $this->createQueryBuilder('s')
-            ->where('s.enabled = :enabled')
-            ->setParameter('enabled', true)
+        /** @var SMTPConfig[] $result */
+        $result = $this->createQueryBuilder('s')
+            ->where('s.valid = :valid')
+            ->setParameter('valid', true)
             ->orderBy('s.id', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 根据权重获取SMTP配置
+     *
+     * @return SMTPConfig[]
      */
     public function findAllEnabledWithWeight(): array
     {
-        return $this->createQueryBuilder('s')
-            ->where('s.enabled = :enabled')
-            ->setParameter('enabled', true)
+        /** @var SMTPConfig[] $result */
+        $result = $this->createQueryBuilder('s')
+            ->where('s.valid = :valid')
+            ->setParameter('valid', true)
             ->orderBy('s.weight', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 根据优先级获取SMTP配置
+     *
+     * @return SMTPConfig[]
      */
     public function findAllEnabledByPriority(): array
     {
-        return $this->createQueryBuilder('s')
-            ->where('s.enabled = :enabled')
-            ->setParameter('enabled', true)
+        /** @var SMTPConfig[] $result */
+        $result = $this->createQueryBuilder('s')
+            ->where('s.valid = :valid')
+            ->setParameter('valid', true)
             ->orderBy('s.priority', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
@@ -65,11 +79,30 @@ class SMTPConfigRepository extends ServiceEntityRepository
      */
     public function countEnabled(): int
     {
-        return $this->createQueryBuilder('s')
+        $count = $this->createQueryBuilder('s')
             ->select('COUNT(s.id)')
-            ->where('s.enabled = :enabled')
-            ->setParameter('enabled', true)
+            ->where('s.valid = :valid')
+            ->setParameter('valid', true)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
+
+        return (int) $count;
+    }
+
+    public function save(SMTPConfig $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(SMTPConfig $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
     }
 }

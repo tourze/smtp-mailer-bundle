@@ -6,6 +6,7 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\Attribute\When;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
@@ -14,6 +15,8 @@ use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
  * 开发环境数据填充
  * 用于开发和测试环境的额外测试数据
  */
+#[When(env: 'dev')]
+#[When(env: 'test')]
 class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     public function load(ObjectManager $manager): void
@@ -43,22 +46,22 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
         $strategies = ['round_robin', 'random', 'weighted', 'priority'];
         $configs = [$gmailConfig, $outlookConfig, null]; // null表示使用策略选择
 
-        for ($i = 1; $i <= 50; $i++) {
+        for ($i = 1; $i <= 50; ++$i) {
             $task = new MailTask();
-            $task->setFromEmail("test{$i}@example.com");
+            $task->setFromEmail("test{$i}@test.unsplash.com");
             $task->setFromName("测试发件人 {$i}");
-            $task->setToEmail("recipient{$i}@example.com");
+            $task->setToEmail("recipient{$i}@test.unsplash.com");
             $task->setToName("测试收件人 {$i}");
             $task->setSubject("批量测试邮件 #{$i}");
             $task->setBody("这是第 {$i} 封测试邮件的内容。用于测试系统的批量处理能力。");
             $task->setIsHtml(false);
-            
+
             // 随机分配状态
             $task->setStatus($statuses[array_rand($statuses)]);
-            
+
             // 随机分配策略
             $task->setSelectorStrategy($strategies[array_rand($strategies)]);
-            
+
             // 随机分配SMTP配置
             $config = $configs[array_rand($configs)];
             if (null !== $config) {
@@ -66,18 +69,18 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
             }
 
             // 部分任务设置为计划发送
-            if ($i % 10 === 0) {
+            if (0 === $i % 10) {
                 $task->setScheduledTime(new \DateTimeImmutable('+' . rand(1, 24) . ' hours'));
             }
 
             // 部分任务添加抄送
-            if ($i % 7 === 0) {
-                $task->setCc(["cc{$i}@example.com", "manager{$i}@example.com"]);
+            if (0 === $i % 7) {
+                $task->setCc(["cc{$i}@test.unsplash.com", "manager{$i}@test.unsplash.com"]);
             }
 
             // 部分任务添加密送
-            if ($i % 11 === 0) {
-                $task->setBcc(["bcc{$i}@example.com"]);
+            if (0 === $i % 11) {
+                $task->setBcc(["bcc{$i}@test.unsplash.com"]);
             }
 
             $manager->persist($task);
@@ -91,8 +94,8 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
     {
         // 超长主题的邮件
         $longSubjectTask = new MailTask();
-        $longSubjectTask->setFromEmail('test@example.com');
-        $longSubjectTask->setToEmail('recipient@example.com');
+        $longSubjectTask->setFromEmail('test@test.unsplash.com');
+        $longSubjectTask->setToEmail('recipient@test.unsplash.com');
         $longSubjectTask->setSubject(str_repeat('这是一个非常长的邮件主题，用于测试系统对超长主题的处理能力。', 10));
         $longSubjectTask->setBody('测试超长主题的邮件内容');
         $longSubjectTask->setSmtpConfig($gmailConfig);
@@ -102,8 +105,8 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
 
         // 超长内容的邮件
         $longBodyTask = new MailTask();
-        $longBodyTask->setFromEmail('test@example.com');
-        $longBodyTask->setToEmail('recipient@example.com');
+        $longBodyTask->setFromEmail('test@test.unsplash.com');
+        $longBodyTask->setToEmail('recipient@test.unsplash.com');
         $longBodyTask->setSubject('超长内容测试邮件');
         $longBodyTask->setBody(str_repeat('这是一段很长的邮件内容，用于测试系统对大容量邮件的处理能力。', 1000));
         $longBodyTask->setIsHtml(false);
@@ -114,9 +117,9 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
 
         // 包含特殊字符的邮件
         $specialCharsTask = new MailTask();
-        $specialCharsTask->setFromEmail('test@example.com');
+        $specialCharsTask->setFromEmail('test@test.unsplash.com');
         $specialCharsTask->setFromName('测试用户 🚀');
-        $specialCharsTask->setToEmail('recipient@example.com');
+        $specialCharsTask->setToEmail('recipient@test.unsplash.com');
         $specialCharsTask->setToName('收件人 ✨');
         $specialCharsTask->setSubject('特殊字符测试 📧 ♥ ★ ☆ ♠ ♣ ♦ ♥');
         $specialCharsTask->setBody('
@@ -138,25 +141,25 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
 
         // 大量抄送和密送的邮件
         $massEmailTask = new MailTask();
-        $massEmailTask->setFromEmail('newsletter@example.com');
-        $massEmailTask->setToEmail('primary@example.com');
+        $massEmailTask->setFromEmail('newsletter@test.unsplash.com');
+        $massEmailTask->setToEmail('primary@test.unsplash.com');
         $massEmailTask->setSubject('大量收件人测试邮件');
         $massEmailTask->setBody('这是一封测试大量收件人的邮件');
-        
+
         // 生成大量抄送地址
         $ccList = [];
-        for ($i = 1; $i <= 20; $i++) {
-            $ccList[] = "cc{$i}@example.com";
+        for ($i = 1; $i <= 20; ++$i) {
+            $ccList[] = "cc{$i}@test.unsplash.com";
         }
         $massEmailTask->setCc($ccList);
-        
+
         // 生成大量密送地址
         $bccList = [];
-        for ($i = 1; $i <= 30; $i++) {
-            $bccList[] = "bcc{$i}@example.com";
+        for ($i = 1; $i <= 30; ++$i) {
+            $bccList[] = "bcc{$i}@test.unsplash.com";
         }
         $massEmailTask->setBcc($bccList);
-        
+
         $massEmailTask->setSmtpConfig($gmailConfig);
         $massEmailTask->setStatus(MailTaskStatus::PENDING);
 
@@ -164,9 +167,9 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
 
         // 复杂HTML邮件
         $complexHtmlTask = new MailTask();
-        $complexHtmlTask->setFromEmail('design@example.com');
+        $complexHtmlTask->setFromEmail('design@test.unsplash.com');
         $complexHtmlTask->setFromName('设计团队');
-        $complexHtmlTask->setToEmail('client@example.com');
+        $complexHtmlTask->setToEmail('client@test.unsplash.com');
         $complexHtmlTask->setToName('客户');
         $complexHtmlTask->setSubject('复杂HTML邮件模板测试');
         $complexHtmlTask->setBody($this->getComplexHtmlTemplate());
@@ -214,9 +217,9 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
         // 模拟的高延迟SMTP配置
         $slowSmtpConfig = new SMTPConfig();
         $slowSmtpConfig->setName('高延迟SMTP测试');
-        $slowSmtpConfig->setHost('slow-smtp.example.com');
+        $slowSmtpConfig->setHost('slow-smtp.test.unsplash.com');
         $slowSmtpConfig->setPort(587);
-        $slowSmtpConfig->setUsername('slow@example.com');
+        $slowSmtpConfig->setUsername('slow@test.unsplash.com');
         $slowSmtpConfig->setPassword('password');
         $slowSmtpConfig->setEncryption('tls');
         $slowSmtpConfig->setTimeout(120); // 2分钟超时
@@ -305,8 +308,8 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
                     </table>
                     
                     <p style="text-align: center;">
-                        <a href="https://example.com/action" class="button">立即体验</a>
-                        <a href="https://example.com/learn-more" class="button" style="background-color: #28a745;">了解更多</a>
+                        <a href="https://unsplash.com/action" class="button">立即体验</a>
+                        <a href="https://unsplash.com/learn-more" class="button" style="background-color: #28a745;">了解更多</a>
                     </p>
                     
                     <h3>🌟 用户评价</h3>
@@ -319,9 +322,9 @@ class DevFixtures extends Fixture implements DependentFixtureInterface, FixtureG
                 <div class="footer">
                     <p>© 2024 SMTP Mailer Bundle. 保留所有权利。</p>
                     <p>
-                        <a href="https://example.com/unsubscribe" style="color: #6c757d;">退订</a> |
-                        <a href="https://example.com/privacy" style="color: #6c757d;">隐私政策</a> |
-                        <a href="https://example.com/contact" style="color: #6c757d;">联系我们</a>
+                        <a href="https://unsplash.com/unsubscribe" style="color: #6c757d;">退订</a> |
+                        <a href="https://unsplash.com/privacy" style="color: #6c757d;">隐私政策</a> |
+                        <a href="https://unsplash.com/contact" style="color: #6c757d;">联系我们</a>
                     </p>
                 </div>
             </div>

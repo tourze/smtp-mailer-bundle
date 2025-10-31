@@ -5,12 +5,15 @@ namespace Tourze\SMTPMailerBundle\DataFixtures;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\Attribute\When;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 
 /**
  * 生产环境数据填充
  * 仅包含生产环境必需的基础配置
  */
+#[When(env: 'dev')]
+#[When(env: 'test')]
 class ProdFixtures extends Fixture implements FixtureGroupInterface
 {
     public function load(ObjectManager $manager): void
@@ -18,9 +21,9 @@ class ProdFixtures extends Fixture implements FixtureGroupInterface
         // 创建默认的SMTP配置（需要管理员后续配置具体参数）
         $defaultConfig = new SMTPConfig();
         $defaultConfig->setName('默认SMTP配置');
-        $defaultConfig->setHost('smtp.example.com');
+        $defaultConfig->setHost('smtp.test.unsplash.com');
         $defaultConfig->setPort(587);
-        $defaultConfig->setUsername('your-email@example.com');
+        $defaultConfig->setUsername('your-email@test.unsplash.com');
         $defaultConfig->setPassword('your-password');
         $defaultConfig->setEncryption('tls');
         $defaultConfig->setTimeout(30);
@@ -34,9 +37,9 @@ class ProdFixtures extends Fixture implements FixtureGroupInterface
         // 创建备用SMTP配置
         $backupConfig = new SMTPConfig();
         $backupConfig->setName('备用SMTP配置');
-        $backupConfig->setHost('backup-smtp.example.com');
+        $backupConfig->setHost('backup-smtp.test.unsplash.com');
         $backupConfig->setPort(587);
-        $backupConfig->setUsername('backup@example.com');
+        $backupConfig->setUsername('backup@test.unsplash.com');
         $backupConfig->setPassword('backup-password');
         $backupConfig->setEncryption('tls');
         $backupConfig->setTimeout(30);
@@ -55,6 +58,6 @@ class ProdFixtures extends Fixture implements FixtureGroupInterface
      */
     public static function getGroups(): array
     {
-        return ['prod', 'production'];
+        return ['prod', 'production', 'default'];
     }
 }

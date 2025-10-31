@@ -2,16 +2,23 @@
 
 namespace Tourze\SMTPMailerBundle\Tests\Service\SMTPSelector;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 use Tourze\SMTPMailerBundle\Service\SMTPSelector\RoundRobinStrategy;
 
-class RoundRobinStrategyTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(RoundRobinStrategy::class)]
+final class RoundRobinStrategyTest extends TestCase
 {
     private RoundRobinStrategy $strategy;
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->strategy = new RoundRobinStrategy();
     }
 
@@ -20,13 +27,13 @@ class RoundRobinStrategyTest extends TestCase
         $this->assertEquals('round_robin', $this->strategy->getName());
     }
 
-    public function testSelect_EmptyConfigs(): void
+    public function testSelectEmptyConfigs(): void
     {
         $result = $this->strategy->select([]);
         $this->assertNull($result);
     }
 
-    public function testSelect_SingleConfig(): void
+    public function testSelectSingleConfig(): void
     {
         $config = new SMTPConfig();
         $config->setName('Config 1');
@@ -35,7 +42,7 @@ class RoundRobinStrategyTest extends TestCase
         $this->assertSame($config, $result);
     }
 
-    public function testSelect_MultipleConfigs_RoundRobin(): void
+    public function testSelectMultipleConfigsRoundRobin(): void
     {
         // 创建多个配置
         $config1 = new SMTPConfig();

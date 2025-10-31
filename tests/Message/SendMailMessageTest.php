@@ -2,10 +2,15 @@
 
 namespace Tourze\SMTPMailerBundle\Tests\Message;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tourze\SMTPMailerBundle\Message\SendMailMessage;
 
-class SendMailMessageTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(SendMailMessage::class)]
+final class SendMailMessageTest extends TestCase
 {
     public function testConstruction(): void
     {

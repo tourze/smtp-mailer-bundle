@@ -25,42 +25,58 @@ class SMTPConfig implements \Stringable
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '配置名称'])]
     #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     #[IndexColumn]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'SMTP服务器地址'])]
     #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $host;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'SMTP端口'])]
     #[Assert\NotBlank]
     #[Assert\Range(min: 1, max: 65535)]
+    #[Assert\Type(type: 'int')]
     private int $port = 587;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '用户名'])]
+    #[Assert\Length(max: 255)]
     private ?string $username = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '密码'])]
+    #[Assert\Length(max: 255)]
     private ?string $password = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, options: ['comment' => '加密方式'])]
+    #[Assert\Length(max: 20)]
+    #[Assert\Choice(choices: ['none', 'ssl', 'tls', 'starttls'])]
     private string $encryption = 'tls';
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '超时时间(秒)'])]
+    #[Assert\Range(min: 1, max: 3600)]
+    #[Assert\Type(type: 'int')]
     private int $timeout = 30;
 
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '认证方式'])]
+    #[Assert\Length(max: 50)]
+    #[Assert\Choice(choices: ['login', 'plain', 'cram-md5', 'xoauth2'])]
     private ?string $authMode = null;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '权重'])]
+    #[Assert\Range(min: 0, max: 999)]
+    #[Assert\Type(type: 'int')]
     #[IndexColumn]
     private int $weight = 1;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '优先级'])]
+    #[Assert\Range(min: 0, max: 999)]
+    #[Assert\Type(type: 'int')]
     #[IndexColumn]
     private int $priority = 0;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否有效'])]
+    #[Assert\Type(type: 'bool')]
     #[IndexColumn]
     private bool $valid = true;
 
@@ -79,10 +95,9 @@ class SMTPConfig implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getHost(): string
@@ -90,10 +105,9 @@ class SMTPConfig implements \Stringable
         return $this->host;
     }
 
-    public function setHost(string $host): self
+    public function setHost(string $host): void
     {
         $this->host = $host;
-        return $this;
     }
 
     public function getPort(): int
@@ -101,10 +115,9 @@ class SMTPConfig implements \Stringable
         return $this->port;
     }
 
-    public function setPort(int $port): self
+    public function setPort(int $port): void
     {
         $this->port = $port;
-        return $this;
     }
 
     public function getUsername(): ?string
@@ -112,10 +125,9 @@ class SMTPConfig implements \Stringable
         return $this->username;
     }
 
-    public function setUsername(?string $username): self
+    public function setUsername(?string $username): void
     {
         $this->username = $username;
-        return $this;
     }
 
     public function getPassword(): ?string
@@ -123,10 +135,9 @@ class SMTPConfig implements \Stringable
         return $this->password;
     }
 
-    public function setPassword(?string $password): self
+    public function setPassword(?string $password): void
     {
         $this->password = $password;
-        return $this;
     }
 
     public function getEncryption(): string
@@ -134,10 +145,9 @@ class SMTPConfig implements \Stringable
         return $this->encryption;
     }
 
-    public function setEncryption(string $encryption): self
+    public function setEncryption(string $encryption): void
     {
         $this->encryption = $encryption;
-        return $this;
     }
 
     public function getTimeout(): int
@@ -145,10 +155,9 @@ class SMTPConfig implements \Stringable
         return $this->timeout;
     }
 
-    public function setTimeout(int $timeout): self
+    public function setTimeout(int $timeout): void
     {
         $this->timeout = $timeout;
-        return $this;
     }
 
     public function getAuthMode(): ?string
@@ -156,10 +165,9 @@ class SMTPConfig implements \Stringable
         return $this->authMode;
     }
 
-    public function setAuthMode(?string $authMode): self
+    public function setAuthMode(?string $authMode): void
     {
         $this->authMode = $authMode;
-        return $this;
     }
 
     public function getWeight(): int
@@ -167,10 +175,9 @@ class SMTPConfig implements \Stringable
         return $this->weight;
     }
 
-    public function setWeight(int $weight): self
+    public function setWeight(int $weight): void
     {
         $this->weight = $weight;
-        return $this;
     }
 
     public function getPriority(): int
@@ -178,10 +185,9 @@ class SMTPConfig implements \Stringable
         return $this->priority;
     }
 
-    public function setPriority(int $priority): self
+    public function setPriority(int $priority): void
     {
         $this->priority = $priority;
-        return $this;
     }
 
     public function isValid(): bool
@@ -189,10 +195,9 @@ class SMTPConfig implements \Stringable
         return $this->valid;
     }
 
-    public function setValid(bool $valid): self
+    public function setValid(bool $valid): void
     {
         $this->valid = $valid;
-        return $this;
     }
 
     /**
@@ -200,38 +205,91 @@ class SMTPConfig implements \Stringable
      */
     public function getDsn(): string
     {
-        $dsn = 'smtp://';
+        return sprintf(
+            'smtp://%s%s:%d%s',
+            $this->buildAuthPart(),
+            $this->host,
+            $this->port,
+            $this->buildParamsPart()
+        );
+    }
 
-        if (null !== $this->username && '' !== $this->username) {
-            $dsn .= urlencode($this->username);
-
-            if (null !== $this->password && '' !== $this->password) {
-                $dsn .= ':' . urlencode($this->password);
-            }
-
-            $dsn .= '@';
+    /**
+     * 构建认证部分
+     */
+    private function buildAuthPart(): string
+    {
+        if (!$this->hasUsername()) {
+            return '';
         }
 
-        $dsn .= $this->host . ':' . $this->port;
+        $auth = urlencode($this->username ?? '');
+        if ($this->hasPassword()) {
+            $auth .= ':' . urlencode($this->password ?? '');
+        }
 
+        return $auth . '@';
+    }
+
+    /**
+     * 构建参数部分
+     */
+    private function buildParamsPart(): string
+    {
         $params = [];
 
-        if ('' !== $this->encryption && $this->encryption !== 'none') {
+        if ($this->hasEncryption()) {
             $params['encryption'] = $this->encryption;
         }
 
-        if (null !== $this->authMode && '' !== $this->authMode) {
+        if ($this->hasAuthMode()) {
             $params['auth_mode'] = $this->authMode;
         }
 
-        if ($this->timeout !== 30) {
+        if ($this->hasCustomTimeout()) {
             $params['timeout'] = $this->timeout;
         }
 
-        if (!empty($params)) {
-            $dsn .= '?' . http_build_query($params);
-        }
+        return 0 === count($params) ? '' : '?' . http_build_query($params);
+    }
 
-        return $dsn;
+    /**
+     * 检查是否有用户名
+     */
+    private function hasUsername(): bool
+    {
+        return null !== $this->username && '' !== $this->username;
+    }
+
+    /**
+     * 检查是否有密码
+     */
+    private function hasPassword(): bool
+    {
+        return null !== $this->password && '' !== $this->password;
+    }
+
+    /**
+     * 检查是否有加密配置
+     */
+    private function hasEncryption(): bool
+    {
+        return '' !== $this->encryption && 'none' !== $this->encryption;
+    }
+
+    /**
+     * 检查是否有认证模式
+     */
+    private function hasAuthMode(): bool
+    {
+        return null !== $this->authMode && '' !== $this->authMode;
+    }
+
+    /**
+     * 检查是否有自定义超时
+     */
+    private function hasCustomTimeout(): bool
+    {
+        return 30 !== $this->timeout;
     }
 }

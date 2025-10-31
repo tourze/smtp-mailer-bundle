@@ -2,152 +2,153 @@
 
 namespace Tourze\SMTPMailerBundle\Tests\Entity;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 
-class MailTaskTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(MailTask::class)]
+final class MailTaskTest extends AbstractEntityTestCase
 {
-    private MailTask $mailTask;
-
-    protected function setUp(): void
+    protected function createEntity(): MailTask
     {
-        $this->mailTask = new MailTask();
+        return new MailTask();
     }
 
-    public function testBasicSettersAndGetters(): void
+    /**
+     * @return array<int, array{string, mixed}>
+     */
+    public static function propertiesProvider(): array
     {
-        $this->mailTask->setFromEmail('sender@example.com');
-        $this->assertSame('sender@example.com', $this->mailTask->getFromEmail());
-
-        $this->mailTask->setFromName('Sender Name');
-        $this->assertSame('Sender Name', $this->mailTask->getFromName());
-
-        $this->mailTask->setToEmail('recipient@example.com');
-        $this->assertSame('recipient@example.com', $this->mailTask->getToEmail());
-
-        $this->mailTask->setToName('Recipient Name');
-        $this->assertSame('Recipient Name', $this->mailTask->getToName());
-
-        $cc = ['cc1@example.com', 'cc2@example.com'];
-        $this->mailTask->setCc($cc);
-        $this->assertSame($cc, $this->mailTask->getCc());
-
-        $bcc = ['bcc1@example.com', 'bcc2@example.com'];
-        $this->mailTask->setBcc($bcc);
-        $this->assertSame($bcc, $this->mailTask->getBcc());
-
-        $this->mailTask->setSubject('Test Subject');
-        $this->assertSame('Test Subject', $this->mailTask->getSubject());
-
-        $this->mailTask->setBody('Test body content');
-        $this->assertSame('Test body content', $this->mailTask->getBody());
-
-        $this->mailTask->setIsHtml(false);
-        $this->assertFalse($this->mailTask->isHtml());
-
-        $attachments = [
-            ['path' => '/path/to/file.pdf', 'name' => 'file.pdf', 'mime' => 'application/pdf'],
-            ['data' => base64_encode('binary data'), 'name' => 'data.txt', 'mime' => 'text/plain'],
+        return [
+            ['fromEmail', 'sender@example.com'],
+            ['fromName', 'Sender Name'],
+            ['toEmail', 'recipient@example.com'],
+            ['toName', 'Recipient Name'],
+            ['cc', ['cc1@example.com', 'cc2@example.com']],
+            ['bcc', ['bcc1@example.com', 'bcc2@example.com']],
+            ['subject', 'Test Subject'],
+            ['body', 'Test body content'],
+            ['attachments', [
+                ['path' => '/path/to/file.pdf', 'name' => 'file.pdf', 'mime' => 'application/pdf'],
+                ['data' => base64_encode('binary data'), 'name' => 'data.txt', 'mime' => 'text/plain'],
+            ]],
+            ['scheduledTime', new \DateTimeImmutable('+1 hour')],
+            ['status', MailTaskStatus::PROCESSING],
+            ['statusMessage', 'Processing message'],
+            ['selectorStrategy', 'round_robin'],
+            ['sentTime', new \DateTimeImmutable()],
         ];
-        $this->mailTask->setAttachments($attachments);
-        $this->assertSame($attachments, $this->mailTask->getAttachments());
+    }
 
-        $scheduledTime = new \DateTimeImmutable('+1 hour');
-        $this->mailTask->setScheduledTime($scheduledTime);
-        $this->assertSame($scheduledTime, $this->mailTask->getScheduledTime());
-
-        $this->mailTask->setStatus(MailTaskStatus::PROCESSING);
-        $this->assertSame(MailTaskStatus::PROCESSING, $this->mailTask->getStatus());
-
-        $this->mailTask->setStatusMessage('Processing message');
-        $this->assertSame('Processing message', $this->mailTask->getStatusMessage());
-
+    public function testSmtpConfigRelation(): void
+    {
+        $mailTask = $this->createEntity();
         $smtpConfig = new SMTPConfig();
-        $this->mailTask->setSmtpConfig($smtpConfig);
-        $this->assertSame($smtpConfig, $this->mailTask->getSmtpConfig());
+        $mailTask->setSmtpConfig($smtpConfig);
+        $this->assertSame($smtpConfig, $mailTask->getSmtpConfig());
+    }
 
-        $this->mailTask->setSelectorStrategy('round_robin');
-        $this->assertSame('round_robin', $this->mailTask->getSelectorStrategy());
-
-        $sentTime = new \DateTimeImmutable();
-        $this->mailTask->setSentTime($sentTime);
-        $this->assertSame($sentTime, $this->mailTask->getSentTime());
-
+    public function testTimestampFields(): void
+    {
+        $mailTask = $this->createEntity();
         // 在测试环境中，时间戳字段在没有Doctrine管理时为null是正常的
-        $this->assertNull($this->mailTask->getCreateTime());
-        $this->assertNull($this->mailTask->getUpdateTime());
+        $this->assertNull($mailTask->getCreateTime());
+        $this->assertNull($mailTask->getUpdateTime());
+    }
+
+    public function testIsHtmlSetterAndGetter(): void
+    {
+        $mailTask = $this->createEntity();
+
+        // 测试 setter 和 getter
+        $mailTask->setIsHtml(true);
+        $this->assertTrue($mailTask->isHtml());
+
+        $mailTask->setIsHtml(false);
+        $this->assertFalse($mailTask->isHtml());
     }
 
     public function testPreUpdateLifecycleCallback(): void
     {
-        $this->assertNull($this->mailTask->getUpdateTime());
+        $mailTask = $this->createEntity();
+        $this->assertNull($mailTask->getUpdateTime());
 
-        $this->mailTask->setStatus(MailTaskStatus::PROCESSING);
+        $mailTask->setStatus(MailTaskStatus::PROCESSING);
     }
 
     public function testMarkAsProcessing(): void
     {
-        $this->mailTask->markAsProcessing();
+        $mailTask = $this->createEntity();
+        $mailTask->markAsProcessing();
 
-        $this->assertSame(MailTaskStatus::PROCESSING, $this->mailTask->getStatus());
+        $this->assertSame(MailTaskStatus::PROCESSING, $mailTask->getStatus());
     }
 
     public function testMarkAsSent(): void
     {
-        $this->mailTask->markAsSent();
+        $mailTask = $this->createEntity();
+        $mailTask->markAsSent();
 
-        $this->assertSame(MailTaskStatus::SENT, $this->mailTask->getStatus());
-        $this->assertInstanceOf(\DateTimeInterface::class, $this->mailTask->getSentTime());
+        $this->assertSame(MailTaskStatus::SENT, $mailTask->getStatus());
+        $this->assertInstanceOf(\DateTimeInterface::class, $mailTask->getSentTime());
     }
 
     public function testMarkAsFailed(): void
     {
+        $mailTask = $this->createEntity();
         $errorMessage = 'Connection timeout';
-        $this->mailTask->markAsFailed($errorMessage);
+        $mailTask->markAsFailed($errorMessage);
 
-        $this->assertSame(MailTaskStatus::FAILED, $this->mailTask->getStatus());
-        $this->assertSame($errorMessage, $this->mailTask->getStatusMessage());
+        $this->assertSame(MailTaskStatus::FAILED, $mailTask->getStatus());
+        $this->assertSame($errorMessage, $mailTask->getStatusMessage());
     }
 
-    public function testIsReadyToSend_PendingAndNoSchedule(): void
+    public function testIsReadyToSendPendingAndNoSchedule(): void
     {
-        $this->mailTask->setStatus(MailTaskStatus::PENDING);
-        $this->mailTask->setScheduledTime(null);
+        $mailTask = $this->createEntity();
+        $mailTask->setStatus(MailTaskStatus::PENDING);
+        $mailTask->setScheduledTime(null);
 
-        $this->assertTrue($this->mailTask->isReadyToSend());
+        $this->assertTrue($mailTask->isReadyToSend());
     }
 
-    public function testIsReadyToSend_PendingAndScheduledInPast(): void
+    public function testIsReadyToSendPendingAndScheduledInPast(): void
     {
-        $this->mailTask->setStatus(MailTaskStatus::PENDING);
-        $this->mailTask->setScheduledTime(new \DateTimeImmutable('-1 hour'));
+        $mailTask = $this->createEntity();
+        $mailTask->setStatus(MailTaskStatus::PENDING);
+        $mailTask->setScheduledTime(new \DateTimeImmutable('-1 hour'));
 
-        $this->assertTrue($this->mailTask->isReadyToSend());
+        $this->assertTrue($mailTask->isReadyToSend());
     }
 
-    public function testIsReadyToSend_PendingButScheduledInFuture(): void
+    public function testIsReadyToSendPendingButScheduledInFuture(): void
     {
-        $this->mailTask->setStatus(MailTaskStatus::PENDING);
-        $this->mailTask->setScheduledTime(new \DateTimeImmutable('+1 hour'));
+        $mailTask = $this->createEntity();
+        $mailTask->setStatus(MailTaskStatus::PENDING);
+        $mailTask->setScheduledTime(new \DateTimeImmutable('+1 hour'));
 
-        $this->assertFalse($this->mailTask->isReadyToSend());
+        $this->assertFalse($mailTask->isReadyToSend());
     }
 
-    public function testIsReadyToSend_NotPending(): void
+    public function testIsReadyToSendNotPending(): void
     {
         $statuses = [
             MailTaskStatus::PROCESSING,
             MailTaskStatus::SENT,
-            MailTaskStatus::FAILED
+            MailTaskStatus::FAILED,
         ];
 
         foreach ($statuses as $status) {
-            $this->mailTask->setStatus($status);
-            $this->mailTask->setScheduledTime(null);
+            $mailTask = $this->createEntity();
+            $mailTask->setStatus($status);
+            $mailTask->setScheduledTime(null);
 
-            $this->assertFalse($this->mailTask->isReadyToSend(), "Status: {$status->value} should not be ready to send");
+            $this->assertFalse($mailTask->isReadyToSend(), "Status: {$status->value} should not be ready to send");
         }
     }
 }

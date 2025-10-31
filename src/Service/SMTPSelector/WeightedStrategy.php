@@ -11,12 +11,9 @@ use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 #[AsTaggedItem(index: 'weighted')]
 class WeightedStrategy implements SMTPSelectorStrategyInterface
 {
-    /**
-     * @inheritDoc
-     */
     public function select(array $configs): ?SMTPConfig
     {
-        if (empty($configs)) {
+        if (0 === count($configs)) {
             return null;
         }
 
@@ -47,9 +44,6 @@ class WeightedStrategy implements SMTPSelectorStrategyInterface
         return $configs[0];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getName(): string
     {
         return 'weighted';

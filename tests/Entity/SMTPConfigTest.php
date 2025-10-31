@@ -2,63 +2,60 @@
 
 namespace Tourze\SMTPMailerBundle\Tests\Entity;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 
-class SMTPConfigTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(SMTPConfig::class)]
+final class SMTPConfigTest extends AbstractEntityTestCase
 {
-    public function testSettersAndGetters(): void
+    protected function createEntity(): SMTPConfig
     {
-        $config = new SMTPConfig();
+        return new SMTPConfig();
+    }
 
-        $config->setName('test-smtp');
-        $this->assertSame('test-smtp', $config->getName());
+    /**
+     * @return array<string, array{string, mixed}>
+     */
+    public static function propertiesProvider(): array
+    {
+        return [
+            'name' => ['name', 'test-smtp'],
+            'host' => ['host', 'smtp.example.com'],
+            'port' => ['port', 25],
+            'username' => ['username', 'username'],
+            'password' => ['password', 'password'],
+            'encryption' => ['encryption', 'tls'],
+            'timeout' => ['timeout', 60],
+            'authMode' => ['authMode', 'login'],
+            'weight' => ['weight', 5],
+            'priority' => ['priority', 10],
+            'valid' => ['valid', false],
+        ];
+    }
 
-        $config->setHost('smtp.example.com');
-        $this->assertSame('smtp.example.com', $config->getHost());
-
-        $config->setPort(25);
-        $this->assertSame(25, $config->getPort());
-
-        $config->setUsername('username');
-        $this->assertSame('username', $config->getUsername());
-
-        $config->setPassword('password');
-        $this->assertSame('password', $config->getPassword());
-
-        $config->setEncryption('tls');
-        $this->assertSame('tls', $config->getEncryption());
-
-        $config->setTimeout(60);
-        $this->assertSame(60, $config->getTimeout());
-
-        $config->setAuthMode('login');
-        $this->assertSame('login', $config->getAuthMode());
-
-        $config->setWeight(5);
-        $this->assertSame(5, $config->getWeight());
-
-        $config->setPriority(10);
-        $this->assertSame(10, $config->getPriority());
-
-        $config->setValid(false);
-        $this->assertFalse($config->isValid());
-
+    public function testTimestampFields(): void
+    {
+        $config = $this->createEntity();
         $this->assertNull($config->getCreateTime());
         $this->assertNull($config->getUpdateTime());
     }
 
     public function testPreUpdateLifecycleCallback(): void
     {
-        $config = new SMTPConfig();
+        $config = $this->createEntity();
         $this->assertNull($config->getUpdateTime());
 
         $config->setName('Updated Name');
     }
 
-    public function testGetDsn_WithBasicConfig(): void
+    public function testGetDsnWithBasicConfig(): void
     {
-        $config = new SMTPConfig();
+        $config = $this->createEntity();
         $config->setHost('smtp.example.com');
         $config->setPort(25);
 
@@ -66,9 +63,9 @@ class SMTPConfigTest extends TestCase
         $this->assertSame($expected, $config->getDsn());
     }
 
-    public function testGetDsn_WithAuthentication(): void
+    public function testGetDsnWithAuthentication(): void
     {
-        $config = new SMTPConfig();
+        $config = $this->createEntity();
         $config->setHost('smtp.example.com');
         $config->setPort(587);
         $config->setUsername('user@example.com');
@@ -78,9 +75,9 @@ class SMTPConfigTest extends TestCase
         $this->assertSame($expected, $config->getDsn());
     }
 
-    public function testGetDsn_WithSpecialChars(): void
+    public function testGetDsnWithSpecialChars(): void
     {
-        $config = new SMTPConfig();
+        $config = $this->createEntity();
         $config->setHost('smtp.example.com');
         $config->setPort(587);
         $config->setUsername('user:special@example.com');
@@ -90,9 +87,9 @@ class SMTPConfigTest extends TestCase
         $this->assertSame($expected, $config->getDsn());
     }
 
-    public function testGetDsn_WithAllParameters(): void
+    public function testGetDsnWithAllParameters(): void
     {
-        $config = new SMTPConfig();
+        $config = $this->createEntity();
         $config->setHost('smtp.example.com');
         $config->setPort(465);
         $config->setUsername('user@example.com');
@@ -105,9 +102,9 @@ class SMTPConfigTest extends TestCase
         $this->assertSame($expected, $config->getDsn());
     }
 
-    public function testGetDsn_WithNoEncryption(): void
+    public function testGetDsnWithNoEncryption(): void
     {
-        $config = new SMTPConfig();
+        $config = $this->createEntity();
         $config->setHost('smtp.example.com');
         $config->setPort(25);
         $config->setEncryption('none');
@@ -118,7 +115,7 @@ class SMTPConfigTest extends TestCase
 
     public function testToString(): void
     {
-        $config = new SMTPConfig();
+        $config = $this->createEntity();
         $config->setName('Test SMTP');
 
         $this->assertSame('Test SMTP', $config->__toString());

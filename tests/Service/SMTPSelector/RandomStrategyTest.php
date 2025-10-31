@@ -2,16 +2,23 @@
 
 namespace Tourze\SMTPMailerBundle\Tests\Service\SMTPSelector;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 use Tourze\SMTPMailerBundle\Service\SMTPSelector\RandomStrategy;
 
-class RandomStrategyTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(RandomStrategy::class)]
+final class RandomStrategyTest extends TestCase
 {
     private RandomStrategy $strategy;
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->strategy = new RandomStrategy();
     }
 
@@ -20,13 +27,13 @@ class RandomStrategyTest extends TestCase
         $this->assertEquals('random', $this->strategy->getName());
     }
 
-    public function testSelect_EmptyConfigs(): void
+    public function testSelectEmptyConfigs(): void
     {
         $result = $this->strategy->select([]);
         $this->assertNull($result);
     }
 
-    public function testSelect_SingleConfig(): void
+    public function testSelectSingleConfig(): void
     {
         $config = new SMTPConfig();
         $config->setName('Config 1');
@@ -35,7 +42,7 @@ class RandomStrategyTest extends TestCase
         $this->assertSame($config, $result);
     }
 
-    public function testSelect_MultipleConfigs_RandomSelection(): void
+    public function testSelectMultipleConfigsRandomSelection(): void
     {
         // 创建多个配置
         $config1 = new SMTPConfig();
@@ -54,7 +61,7 @@ class RandomStrategyTest extends TestCase
         $results = [];
         $differentResultsFound = false;
 
-        for ($i = 0; $i < 100; $i++) {
+        for ($i = 0; $i < 100; ++$i) {
             $result = $this->strategy->select($configs);
             $this->assertContains($result, $configs);
 
@@ -75,7 +82,7 @@ class RandomStrategyTest extends TestCase
      * 测试随机算法的分布是否相对均匀
      * 这是一个基于概率的测试，理论上有极小概率会失败
      */
-    public function testSelect_Distribution(): void
+    public function testSelectDistribution(): void
     {
         // 创建多个配置
         $config1 = new SMTPConfig();
@@ -93,14 +100,15 @@ class RandomStrategyTest extends TestCase
         $counts = [
             'Config 1' => 0,
             'Config 2' => 0,
-            'Config 3' => 0
+            'Config 3' => 0,
         ];
 
         // 执行大量的随机选择
         $iterations = 1000;
-        for ($i = 0; $i < $iterations; $i++) {
+        for ($i = 0; $i < $iterations; ++$i) {
             $result = $this->strategy->select($configs);
-            $counts[$result->getName()]++;
+            $this->assertNotNull($result);
+            ++$counts[$result->getName()];
         }
 
         // 计算每个配置的选择概率
@@ -111,8 +119,8 @@ class RandomStrategyTest extends TestCase
 
         // 检查每个配置的选择概率是否接近 1/3 (允许一定误差)
         foreach ($probabilities as $name => $probability) {
-            $this->assertGreaterThan(0.25, $probability, "配置 $name 的选择概率异常低");
-            $this->assertLessThan(0.40, $probability, "配置 $name 的选择概率异常高");
+            $this->assertGreaterThan(0.25, $probability, "配置 {$name} 的选择概率异常低");
+            $this->assertLessThan(0.40, $probability, "配置 {$name} 的选择概率异常高");
         }
     }
 }

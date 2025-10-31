@@ -20,6 +20,7 @@ use Tourze\SMTPMailerBundle\Service\SMTPMailerService;
 class ProcessScheduledMailsCommand extends Command
 {
     public const NAME = 'smtp-mailer:process-scheduled-mails';
+
     public function __construct(
         private readonly SMTPMailerService $mailerService,
     ) {
@@ -31,21 +32,24 @@ class ProcessScheduledMailsCommand extends Command
      */
     private function getProcessInterval(): int
     {
-        return (int) ($_ENV['SMTP_MAILER_PROCESS_INTERVAL'] ?? 60);
+        $interval = $_ENV['SMTP_MAILER_PROCESS_INTERVAL'] ?? 60;
+        return is_numeric($interval) ? (int) $interval : 60;
     }
 
     protected function configure(): void
     {
         $this
             ->addOption('daemon', 'd', InputOption::VALUE_NONE, '以守护进程模式运行')
-            ->addOption('interval', 'i', InputOption::VALUE_REQUIRED, '轮询间隔（秒）', $this->getProcessInterval());
+            ->addOption('interval', 'i', InputOption::VALUE_REQUIRED, '轮询间隔（秒）', $this->getProcessInterval())
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         $daemon = $input->getOption('daemon');
-        $interval = (int) $input->getOption('interval');
+        $intervalOption = $input->getOption('interval');
+        $interval = is_numeric($intervalOption) ? (int) $intervalOption : $this->getProcessInterval();
 
         if ($interval < 1) {
             $interval = $this->getProcessInterval();
@@ -60,7 +64,7 @@ class ProcessScheduledMailsCommand extends Command
                 sleep($interval);
             }
         }
-        
+
         return $this->processScheduledMails($io);
     }
 

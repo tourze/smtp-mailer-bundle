@@ -4,17 +4,16 @@ namespace Tourze\SMTPMailerBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 use Tourze\SMTPMailerBundle\Entity\MailTask;
 use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 
 /**
  * 邮件任务仓库
  *
- * @method MailTask|null find($id, $lockMode = null, $lockVersion = null)
- * @method MailTask|null findOneBy(array $criteria, array $orderBy = null)
- * @method MailTask[] findAll()
- * @method MailTask[] findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @extends ServiceEntityRepository<MailTask>
  */
+#[AsRepository(entityClass: MailTask::class)]
 class MailTaskRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -24,25 +23,33 @@ class MailTaskRepository extends ServiceEntityRepository
 
     /**
      * 查找待处理的邮件任务
+     *
+     * @return MailTask[]
      */
     public function findPendingTasks(): array
     {
-        return $this->createQueryBuilder('t')
+        /** @var MailTask[] $result */
+        $result = $this->createQueryBuilder('t')
             ->where('t.status = :status')
             ->setParameter('status', MailTaskStatus::PENDING)
             ->orderBy('t.createTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 查找计划发送的任务
+     *
+     * @return MailTask[]
      */
     public function findScheduledTasks(): array
     {
         $now = new \DateTimeImmutable();
 
-        return $this->createQueryBuilder('t')
+        /** @var MailTask[] $result */
+        $result = $this->createQueryBuilder('t')
             ->where('t.status = :status')
             ->andWhere('t.scheduledTime IS NOT NULL')
             ->andWhere('t.scheduledTime <= :now')
@@ -50,47 +57,80 @@ class MailTaskRepository extends ServiceEntityRepository
             ->setParameter('now', $now)
             ->orderBy('t.scheduledTime', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 按状态查找任务
+     *
+     * @return MailTask[]
      */
     public function findByStatus(string $status): array
     {
-        return $this->createQueryBuilder('t')
+        /** @var MailTask[] $result */
+        $result = $this->createQueryBuilder('t')
             ->where('t.status = :status')
             ->setParameter('status', $status)
-            ->orderBy('t.updatedAt', 'DESC')
+            ->orderBy('t.updateTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 按日期范围查找任务
+     *
+     * @return MailTask[]
      */
     public function findByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
     {
-        return $this->createQueryBuilder('t')
+        /** @var MailTask[] $result */
+        $result = $this->createQueryBuilder('t')
             ->where('t.createTime >= :startDate')
             ->andWhere('t.createTime <= :endDate')
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate)
             ->orderBy('t.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 按SMTP配置查找任务
+     *
+     * @return MailTask[]
      */
     public function findBySmtpConfig(int $smtpConfigId): array
     {
-        return $this->createQueryBuilder('t')
+        /** @var MailTask[] $result */
+        $result = $this->createQueryBuilder('t')
             ->where('t.smtpConfig = :smtpConfigId')
             ->setParameter('smtpConfigId', $smtpConfigId)
             ->orderBy('t.createTime', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
+    }
+
+    public function save(MailTask $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(MailTask $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
     }
 }

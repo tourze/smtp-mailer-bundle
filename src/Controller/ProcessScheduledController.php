@@ -11,7 +11,7 @@ use Tourze\SMTPMailerBundle\Service\SMTPMailerService;
 /**
  * 处理计划任务的控制器
  */
-class ProcessScheduledController extends AbstractController
+final class ProcessScheduledController extends AbstractController
 {
     #[Route(path: '/admin/process-scheduled', name: 'smtp_mailer_process_scheduled')]
     public function __invoke(Request $request, SMTPMailerService $mailerService): Response

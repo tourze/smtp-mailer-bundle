@@ -2,7 +2,7 @@
 
 namespace Tourze\SMTPMailerBundle\Service;
 
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 use Tourze\SMTPMailerBundle\Repository\SMTPConfigRepository;
 use Tourze\SMTPMailerBundle\Service\SMTPSelector\SMTPSelectorStrategyInterface;
@@ -19,12 +19,16 @@ class SMTPSelectorService
 
     private string $defaultStrategy;
 
+    /**
+     * @param iterable<string, SMTPSelectorStrategyInterface> $strategies
+     */
     public function __construct(
         private readonly SMTPConfigRepository $smtpConfigRepository,
-        #[TaggedIterator(tag: 'smtp_mailer.selector_strategy', indexAttribute: 'key')]
+        #[AutowireIterator(tag: 'smtp_mailer.selector_strategy', indexAttribute: 'key')]
         iterable $strategies,
     ) {
-        $this->defaultStrategy = $_ENV['SMTP_MAILER_DEFAULT_STRATEGY'] ?? 'round_robin';
+        $envStrategy = $_ENV['SMTP_MAILER_DEFAULT_STRATEGY'] ?? 'round_robin';
+        $this->defaultStrategy = is_string($envStrategy) ? $envStrategy : 'round_robin';
 
         foreach ($strategies as $key => $strategy) {
             $this->strategies[$key] = $strategy;
@@ -33,7 +37,10 @@ class SMTPSelectorService
         // 添加默认策略的别名
         if (!isset($this->strategies[$this->defaultStrategy]) && count($this->strategies) > 0) {
             // 如果默认策略不存在，使用第一个可用的策略
-            $this->defaultStrategy = array_key_first($this->strategies);
+            $firstKey = array_key_first($this->strategies);
+            if (is_string($firstKey)) {
+                $this->defaultStrategy = $firstKey;
+            }
         }
     }
 
@@ -42,12 +49,12 @@ class SMTPSelectorService
      */
     public function selectConfig(?string $strategy = null): ?SMTPConfig
     {
-        $strategy = $strategy ?? $this->defaultStrategy;
+        $strategy ??= $this->defaultStrategy;
 
         // 获取所有启用的SMTP配置
         $configs = $this->smtpConfigRepository->findAllEnabled();
 
-        if (empty($configs)) {
+        if (0 === count($configs)) {
             return null;
         }
 
@@ -76,6 +83,7 @@ class SMTPSelectorService
         foreach ($this->strategies as $key => $strategy) {
             $result[$key] = $strategy->getName();
         }
+
         return $result;
     }
 

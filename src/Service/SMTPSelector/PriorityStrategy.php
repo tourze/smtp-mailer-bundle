@@ -11,12 +11,9 @@ use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 #[AsTaggedItem(index: 'priority')]
 class PriorityStrategy implements SMTPSelectorStrategyInterface
 {
-    /**
-     * @inheritDoc
-     */
     public function select(array $configs): ?SMTPConfig
     {
-        if (empty($configs)) {
+        if (0 === count($configs)) {
             return null;
         }
 
@@ -45,9 +42,6 @@ class PriorityStrategy implements SMTPSelectorStrategyInterface
         return $highestPriorityConfigs[0];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getName(): string
     {
         return 'priority';

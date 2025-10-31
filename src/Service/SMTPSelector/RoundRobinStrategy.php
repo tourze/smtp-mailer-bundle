@@ -13,12 +13,9 @@ class RoundRobinStrategy implements SMTPSelectorStrategyInterface
 {
     private int $lastIndex = -1;
 
-    /**
-     * @inheritDoc
-     */
     public function select(array $configs): ?SMTPConfig
     {
-        if (empty($configs)) {
+        if (0 === count($configs)) {
             return null;
         }
 
@@ -28,9 +25,6 @@ class RoundRobinStrategy implements SMTPSelectorStrategyInterface
         return $configs[$this->lastIndex];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getName(): string
     {
         return 'round_robin';

@@ -2,10 +2,17 @@
 
 namespace Tourze\SMTPMailerBundle\Tests\Enum;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
+use Tourze\PHPUnitEnum\AbstractEnumTestCase;
 use Tourze\SMTPMailerBundle\Enum\MailTaskStatus;
 
-class MailTaskStatusTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(MailTaskStatus::class)]
+final class MailTaskStatusTest extends AbstractEnumTestCase
 {
     /**
      * 测试所有枚举值是否定义正确
@@ -13,7 +20,7 @@ class MailTaskStatusTest extends TestCase
     public function testAllCasesExist(): void
     {
         $expectedCases = ['PENDING', 'PROCESSING', 'SENT', 'FAILED'];
-        $actualCases = array_map(fn($case) => $case->name, MailTaskStatus::cases());
+        $actualCases = array_map(fn ($case) => $case->name, MailTaskStatus::cases());
 
         $this->assertCount(4, MailTaskStatus::cases());
         $this->assertEquals($expectedCases, $actualCases);
@@ -64,7 +71,20 @@ class MailTaskStatusTest extends TestCase
     }
 
     /**
+     * 使用数据提供器测试状态、标签和徽章的对应关系
+     */
+    #[DataProvider('provideStatusLabelData')]
+    public function testStatusLabelAndBadgeMapping(MailTaskStatus $status, string $expectedLabel, string $expectedBadge): void
+    {
+        $this->assertSame($expectedLabel, $status->getLabel());
+        $this->assertSame($expectedBadge, $status->getBadge());
+    }
+
+    /**
      * 数据提供器：所有状态和对应的标签
+     */
+    /**
+     * @return array<string, array{MailTaskStatus, string, string}>
      */
     public static function provideStatusLabelData(): array
     {
@@ -77,14 +97,43 @@ class MailTaskStatusTest extends TestCase
     }
 
     /**
-     * 使用数据提供器测试状态、标签和徽章的对应关系
-     *
-     * @dataProvider provideStatusLabelData
+     * 使用 #[TestWith] 注解合并对 value 和 label 的验证
      */
-    public function testStatusLabelAndBadgeMapping(MailTaskStatus $status, string $expectedLabel, string $expectedBadge): void
+    #[TestWith(['pending', '等待发送'])]
+    #[TestWith(['processing', '发送中'])]
+    #[TestWith(['sent', '已发送'])]
+    #[TestWith(['failed', '发送失败'])]
+    public function testValueAndLabelConsistency(string $expectedValue, string $expectedLabel): void
     {
+        $status = MailTaskStatus::from($expectedValue);
+        $this->assertSame($expectedValue, $status->value);
         $this->assertSame($expectedLabel, $status->getLabel());
-        $this->assertSame($expectedBadge, $status->getBadge());
+    }
+
+    /**
+     * 测试标签唯一性
+     */
+    public function testLabelUniqueness(): void
+    {
+        $labels = [];
+        foreach (MailTaskStatus::cases() as $status) {
+            $label = $status->getLabel();
+            $this->assertNotContains($label, $labels, "标签 '{$label}' 重复");
+            $labels[] = $label;
+        }
+    }
+
+    /**
+     * 测试值唯一性
+     */
+    public function testValueUniqueness(): void
+    {
+        $values = [];
+        foreach (MailTaskStatus::cases() as $status) {
+            $value = $status->value;
+            $this->assertNotContains($value, $values, "值 '{$value}' 重复");
+            $values[] = $value;
+        }
     }
 
     /**
@@ -93,9 +142,9 @@ class MailTaskStatusTest extends TestCase
     public function testImplementsInterfaces(): void
     {
         $reflection = new \ReflectionEnum(MailTaskStatus::class);
-        
-        $interfaceNames = array_map(fn($interface) => $interface->getName(), $reflection->getInterfaces());
-        
+
+        $interfaceNames = array_map(fn ($interface) => $interface->getName(), $reflection->getInterfaces());
+
         $this->assertContains('Tourze\EnumExtra\Labelable', $interfaceNames);
         $this->assertContains('Tourze\EnumExtra\Itemable', $interfaceNames);
         $this->assertContains('Tourze\EnumExtra\Selectable', $interfaceNames);
@@ -110,7 +159,7 @@ class MailTaskStatusTest extends TestCase
         foreach (MailTaskStatus::cases() as $status) {
             $serialized = serialize($status);
             $unserialized = unserialize($serialized);
-            
+
             $this->assertInstanceOf(MailTaskStatus::class, $unserialized);
             $this->assertSame($status->value, $unserialized->value);
             $this->assertSame($status->getLabel(), $unserialized->getLabel());
@@ -163,9 +212,35 @@ class MailTaskStatusTest extends TestCase
     public function testStringRepresentation(): void
     {
         // 测试枚举是否可以转换为字符串（通过 value 属性）
-        $this->assertSame('pending', (string)MailTaskStatus::PENDING->value);
-        $this->assertSame('processing', (string)MailTaskStatus::PROCESSING->value);
-        $this->assertSame('sent', (string)MailTaskStatus::SENT->value);
-        $this->assertSame('failed', (string)MailTaskStatus::FAILED->value);
+        $this->assertSame('pending', (string) MailTaskStatus::PENDING->value);
+        $this->assertSame('processing', (string) MailTaskStatus::PROCESSING->value);
+        $this->assertSame('sent', (string) MailTaskStatus::SENT->value);
+        $this->assertSame('failed', (string) MailTaskStatus::FAILED->value);
+    }
+
+    /**
+     * 测试 toArray 方法返回正确的数组格式
+     */
+    public function testToArray(): void
+    {
+        // 测试 PENDING 状态
+        $pendingArray = MailTaskStatus::PENDING->toArray();
+        $this->assertIsArray($pendingArray);
+        $this->assertEquals(['value' => 'pending', 'label' => '等待发送'], $pendingArray);
+
+        // 测试 PROCESSING 状态
+        $processingArray = MailTaskStatus::PROCESSING->toArray();
+        $this->assertIsArray($processingArray);
+        $this->assertEquals(['value' => 'processing', 'label' => '发送中'], $processingArray);
+
+        // 测试 SENT 状态
+        $sentArray = MailTaskStatus::SENT->toArray();
+        $this->assertIsArray($sentArray);
+        $this->assertEquals(['value' => 'sent', 'label' => '已发送'], $sentArray);
+
+        // 测试 FAILED 状态
+        $failedArray = MailTaskStatus::FAILED->toArray();
+        $this->assertIsArray($failedArray);
+        $this->assertEquals(['value' => 'failed', 'label' => '发送失败'], $failedArray);
     }
 }

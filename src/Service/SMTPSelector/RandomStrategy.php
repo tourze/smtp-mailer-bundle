@@ -11,22 +11,17 @@ use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 #[AsTaggedItem(index: 'random')]
 class RandomStrategy implements SMTPSelectorStrategyInterface
 {
-    /**
-     * @inheritDoc
-     */
     public function select(array $configs): ?SMTPConfig
     {
-        if (empty($configs)) {
+        if (0 === count($configs)) {
             return null;
         }
 
         $randomIndex = random_int(0, count($configs) - 1);
+
         return $configs[$randomIndex];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getName(): string
     {
         return 'random';

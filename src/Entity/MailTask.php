@@ -26,50 +26,71 @@ class MailTask implements \Stringable
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '发件人邮箱'])]
     #[Assert\Email]
+    #[Assert\Length(max: 255)]
+    #[Assert\NotBlank]
     #[IndexColumn]
     private string $fromEmail;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '发件人姓名'])]
+    #[Assert\Length(max: 255)]
     private ?string $fromName = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '收件人邮箱'])]
     #[Assert\Email]
+    #[Assert\Length(max: 255)]
     #[Assert\NotBlank]
     #[IndexColumn]
     private string $toEmail;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '收件人姓名'])]
+    #[Assert\Length(max: 255)]
     private ?string $toName = null;
 
+    /** @var array<string>|null */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '抄送邮箱列表'])]
+    #[Assert\All(constraints: [
+        new Assert\Email(),
+    ])]
     private ?array $cc = null;
 
+    /** @var array<string>|null */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '密送邮箱列表'])]
+    #[Assert\All(constraints: [
+        new Assert\Email(),
+    ])]
     private ?array $bcc = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '邮件主题'])]
     #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $subject;
 
     #[ORM\Column(type: Types::TEXT, options: ['comment' => '邮件内容'])]
     #[Assert\NotBlank]
+    #[Assert\Length(max: 16777215)]
     private string $body;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否为HTML格式'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isHtml = true;
 
+    /** @var array<int, array<string, mixed>>|null */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '附件列表'])]
+    #[Assert\Type(type: 'array')]
     private ?array $attachments = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '计划发送时间'])]
+    #[Assert\Type(type: '\DateTimeImmutable')]
     #[IndexColumn]
     private ?\DateTimeImmutable $scheduledTime = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, enumType: MailTaskStatus::class, options: ['comment' => '任务状态'])]
+    #[Assert\Choice(callback: [MailTaskStatus::class, 'cases'])]
     #[IndexColumn]
     private MailTaskStatus $status = MailTaskStatus::PENDING;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '状态消息'])]
+    #[Assert\Length(max: 65535)]
     private ?string $statusMessage = null;
 
     #[ORM\ManyToOne(targetEntity: SMTPConfig::class)]
@@ -77,9 +98,11 @@ class MailTask implements \Stringable
     private ?SMTPConfig $smtpConfig = null;
 
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '选择器策略'])]
+    #[Assert\Length(max: 50)]
     private ?string $selectorStrategy = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '发送时间'])]
+    #[Assert\Type(type: '\DateTimeImmutable')]
     #[IndexColumn]
     private ?\DateTimeImmutable $sentTime = null;
 
@@ -98,10 +121,9 @@ class MailTask implements \Stringable
         return $this->fromEmail;
     }
 
-    public function setFromEmail(string $fromEmail): self
+    public function setFromEmail(string $fromEmail): void
     {
         $this->fromEmail = $fromEmail;
-        return $this;
     }
 
     public function getFromName(): ?string
@@ -109,10 +131,9 @@ class MailTask implements \Stringable
         return $this->fromName;
     }
 
-    public function setFromName(?string $fromName): self
+    public function setFromName(?string $fromName): void
     {
         $this->fromName = $fromName;
-        return $this;
     }
 
     public function getToEmail(): string
@@ -120,10 +141,9 @@ class MailTask implements \Stringable
         return $this->toEmail;
     }
 
-    public function setToEmail(string $toEmail): self
+    public function setToEmail(string $toEmail): void
     {
         $this->toEmail = $toEmail;
-        return $this;
     }
 
     public function getToName(): ?string
@@ -131,32 +151,41 @@ class MailTask implements \Stringable
         return $this->toName;
     }
 
-    public function setToName(?string $toName): self
+    public function setToName(?string $toName): void
     {
         $this->toName = $toName;
-        return $this;
     }
 
+    /**
+     * @return array<string>|null
+     */
     public function getCc(): ?array
     {
         return $this->cc;
     }
 
-    public function setCc(?array $cc): self
+    /**
+     * @param array<string>|null $cc
+     */
+    public function setCc(?array $cc): void
     {
         $this->cc = $cc;
-        return $this;
     }
 
+    /**
+     * @return array<string>|null
+     */
     public function getBcc(): ?array
     {
         return $this->bcc;
     }
 
-    public function setBcc(?array $bcc): self
+    /**
+     * @param array<string>|null $bcc
+     */
+    public function setBcc(?array $bcc): void
     {
         $this->bcc = $bcc;
-        return $this;
     }
 
     public function getSubject(): string
@@ -164,10 +193,9 @@ class MailTask implements \Stringable
         return $this->subject;
     }
 
-    public function setSubject(string $subject): self
+    public function setSubject(string $subject): void
     {
         $this->subject = $subject;
-        return $this;
     }
 
     public function getBody(): string
@@ -175,10 +203,9 @@ class MailTask implements \Stringable
         return $this->body;
     }
 
-    public function setBody(string $body): self
+    public function setBody(string $body): void
     {
         $this->body = $body;
-        return $this;
     }
 
     public function isHtml(): bool
@@ -186,21 +213,25 @@ class MailTask implements \Stringable
         return $this->isHtml;
     }
 
-    public function setIsHtml(bool $isHtml): self
+    public function setIsHtml(bool $isHtml): void
     {
         $this->isHtml = $isHtml;
-        return $this;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>|null
+     */
     public function getAttachments(): ?array
     {
         return $this->attachments;
     }
 
-    public function setAttachments(?array $attachments): self
+    /**
+     * @param array<int, array<string, mixed>>|null $attachments
+     */
+    public function setAttachments(?array $attachments): void
     {
         $this->attachments = $attachments;
-        return $this;
     }
 
     public function getScheduledTime(): ?\DateTimeImmutable
@@ -208,10 +239,9 @@ class MailTask implements \Stringable
         return $this->scheduledTime;
     }
 
-    public function setScheduledTime(?\DateTimeImmutable $scheduledTime): self
+    public function setScheduledTime(?\DateTimeImmutable $scheduledTime): void
     {
         $this->scheduledTime = $scheduledTime;
-        return $this;
     }
 
     public function getStatus(): MailTaskStatus
@@ -219,10 +249,9 @@ class MailTask implements \Stringable
         return $this->status;
     }
 
-    public function setStatus(MailTaskStatus $status): self
+    public function setStatus(MailTaskStatus $status): void
     {
         $this->status = $status;
-        return $this;
     }
 
     public function getStatusMessage(): ?string
@@ -230,10 +259,9 @@ class MailTask implements \Stringable
         return $this->statusMessage;
     }
 
-    public function setStatusMessage(?string $statusMessage): self
+    public function setStatusMessage(?string $statusMessage): void
     {
         $this->statusMessage = $statusMessage;
-        return $this;
     }
 
     public function getSmtpConfig(): ?SMTPConfig
@@ -241,10 +269,9 @@ class MailTask implements \Stringable
         return $this->smtpConfig;
     }
 
-    public function setSmtpConfig(?SMTPConfig $smtpConfig): self
+    public function setSmtpConfig(?SMTPConfig $smtpConfig): void
     {
         $this->smtpConfig = $smtpConfig;
-        return $this;
     }
 
     public function getSelectorStrategy(): ?string
@@ -252,10 +279,9 @@ class MailTask implements \Stringable
         return $this->selectorStrategy;
     }
 
-    public function setSelectorStrategy(?string $selectorStrategy): self
+    public function setSelectorStrategy(?string $selectorStrategy): void
     {
         $this->selectorStrategy = $selectorStrategy;
-        return $this;
     }
 
     public function getSentTime(): ?\DateTimeImmutable
@@ -263,10 +289,9 @@ class MailTask implements \Stringable
         return $this->sentTime;
     }
 
-    public function setSentTime(?\DateTimeImmutable $sentTime): self
+    public function setSentTime(?\DateTimeImmutable $sentTime): void
     {
         $this->sentTime = $sentTime;
-        return $this;
     }
 
     /**
@@ -275,12 +300,12 @@ class MailTask implements \Stringable
     public function isReadyToSend(): bool
     {
         // 只有状态为等待中的任务才能发送
-        if ($this->status !== MailTaskStatus::PENDING) {
+        if (MailTaskStatus::PENDING !== $this->status) {
             return false;
         }
 
         // 如果有计划发送时间，检查是否到达发送时间
-        if ($this->scheduledTime !== null) {
+        if (null !== $this->scheduledTime) {
             $now = new \DateTimeImmutable();
             if ($this->scheduledTime > $now) {
                 return false;
@@ -296,6 +321,7 @@ class MailTask implements \Stringable
     public function markAsProcessing(): self
     {
         $this->status = MailTaskStatus::PROCESSING;
+
         return $this;
     }
 
@@ -306,6 +332,7 @@ class MailTask implements \Stringable
     {
         $this->status = MailTaskStatus::SENT;
         $this->sentTime = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -316,6 +343,7 @@ class MailTask implements \Stringable
     {
         $this->status = MailTaskStatus::FAILED;
         $this->statusMessage = $errorMessage;
+
         return $this;
     }
 }

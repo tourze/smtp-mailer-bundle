@@ -6,10 +6,9 @@ services:
 
   Tourze\SMTPMailerBundle\Controller\:
     resource: '../../Controller/'
+    
   Tourze\SMTPMailerBundle\Command\:
     resource: '../../Command/'
-  Tourze\SMTPMailerBundle\DataFixtures\:
-    resource: '../../DataFixtures/'
   Tourze\SMTPMailerBundle\MessageHandler\:
     resource: '../../MessageHandler/'
   Tourze\SMTPMailerBundle\Repository\:
