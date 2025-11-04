@@ -16,7 +16,7 @@ use Tourze\SMTPMailerBundle\Entity\MailTask;
 #[RunTestsInSeparateProcesses]
 final class MailTaskCrudControllerTest extends AbstractEasyAdminControllerTestCase
 {
-    protected function onSetUp(): void
+    protected function afterEasyAdminSetUp(): void
     {
         parent::onSetUp();
     }

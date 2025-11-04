@@ -16,9 +16,9 @@ use Tourze\SMTPMailerBundle\Entity\SMTPConfig;
 #[RunTestsInSeparateProcesses]
 final class SMTPConfigCrudControllerTest extends AbstractEasyAdminControllerTestCase
 {
-    protected function onSetUp(): void
+    protected function onAfterSetUp(): void
     {
-        parent::onSetUp();
+        parent::onAfterSetUp();
     }
 
     /**
