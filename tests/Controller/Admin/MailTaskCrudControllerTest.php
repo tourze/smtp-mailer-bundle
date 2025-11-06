@@ -18,7 +18,7 @@ final class MailTaskCrudControllerTest extends AbstractEasyAdminControllerTestCa
 {
     protected function afterEasyAdminSetUp(): void
     {
-        parent::onSetUp();
+        // 钩子方法，无需调用 parent::onSetUp()，基类会在 onSetUp() 中自动调用此方法
     }
 
     /**
