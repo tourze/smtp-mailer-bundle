@@ -33,6 +33,7 @@ class ProcessScheduledMailsCommand extends Command
     private function getProcessInterval(): int
     {
         $interval = $_ENV['SMTP_MAILER_PROCESS_INTERVAL'] ?? 60;
+
         return is_numeric($interval) ? (int) $interval : 60;
     }
 
@@ -47,7 +48,7 @@ class ProcessScheduledMailsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $daemon = $input->getOption('daemon');
+        $daemon = (bool) $input->getOption('daemon');
         $intervalOption = $input->getOption('interval');
         $interval = is_numeric($intervalOption) ? (int) $intervalOption : $this->getProcessInterval();
 
@@ -55,10 +56,9 @@ class ProcessScheduledMailsCommand extends Command
             $interval = $this->getProcessInterval();
         }
 
-        if ((bool) $daemon) {
+        if ($daemon) {
             $io->info('以守护进程模式启动，轮询间隔: ' . $interval . '秒');
 
-            // @phpstan-ignore-next-line
             while (true) {
                 $this->processScheduledMails($io);
                 sleep($interval);

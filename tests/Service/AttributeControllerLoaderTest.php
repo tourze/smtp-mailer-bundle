@@ -41,7 +41,6 @@ final class AttributeControllerLoaderTest extends AbstractIntegrationTestCase
         // 验证返回的路由集合不为空（因为加载了 ProcessScheduledController）
         $this->assertGreaterThan(0, $routeCollection->count());
 
-        // 验证路由集合包含来自 ProcessScheduledController 的路由
         $routes = $routeCollection->all();
         $this->assertNotEmpty($routes);
     }

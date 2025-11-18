@@ -7,7 +7,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Tourze\BundleDependency\BundleDependencyInterface;
 use Tourze\DoctrineIndexedBundle\DoctrineIndexedBundle;
 use Tourze\DoctrineTimestampBundle\DoctrineTimestampBundle;
-use Tourze\RoutingAutoLoaderBundle\RoutingAutoLoaderBundle;
+use Tourze\EasyAdminMenuBundle\EasyAdminMenuBundle;
 
 class SMTPMailerBundle extends Bundle implements BundleDependencyInterface
 {
@@ -17,7 +17,7 @@ class SMTPMailerBundle extends Bundle implements BundleDependencyInterface
             DoctrineBundle::class => ['all' => true],
             DoctrineIndexedBundle::class => ['all' => true],
             DoctrineTimestampBundle::class => ['all' => true],
-            RoutingAutoLoaderBundle::class => ['all' => true],
+            EasyAdminMenuBundle::class => ['all' => true],
         ];
     }
 }
